@@ -4,7 +4,7 @@ from game import *
 def main():
     players = []
     print("Please type the player names.")
-    print("Hint: type \"Computer\" to play with the computer.")
+    print("Hint: type \"Computer\" to play with the computer.")  # TODO
     for i in range(1, 10):
         players.append(Player(input(f"Player {i}: ")))
         if i == 2:
