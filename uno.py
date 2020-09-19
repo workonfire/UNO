@@ -44,7 +44,10 @@ def main():
                 card = None
                 card_input = input("Please input the card that you want to play (or type D to draw): ").upper()
                 if card_input == 'D':
-                    game.draw(game.turn)
+                    try:
+                        game.draw(game.turn)
+                    except IndexError:
+                        game.shuffle_cards()
                 else:
                     if card_input in ['WILDCARD', '+4']:
                         card = Card(card_input, 'BLUE')

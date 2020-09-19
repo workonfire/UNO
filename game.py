@@ -146,6 +146,15 @@ class Table:
         else:
             player.hand.append(cards)
 
+    def shuffle_cards(self):
+        """
+        Shuffles the cards under the main card and adds them to the deck.
+        :return:
+        """
+        old_cards = self.stack[1:]
+        random.shuffle(old_cards)
+        self.deck.stack = old_cards
+
     @property
     def opponent(self) -> Player:
         """
@@ -212,8 +221,10 @@ class ComputerTurn:
 
     @property
     def most_reasonable_color(self) -> str:
-        all_card_colors = [card.color for card in self.playable_cards]
-        return max(set(all_card_colors), key=all_card_colors.count)
+        card_colors = [card.color for card in self.playable_cards]
+        if not card_colors:
+            return random.choice(Card.COLORS)
+        return max(set(card_colors), key=card_colors.count)
 
     def get_result(self) -> Card:
         while not self.playable_cards:
