@@ -19,7 +19,7 @@ def main():
     if len(argv) > 1:
         cheats = argv[1] == '--cheats' or argv[1] == '-C'
     else:
-        cheats = True  # TODO: DEBUG
+        cheats = False
 
     rules = {'deck_size': deck_size,
              'initial_cards': initial_cards,
