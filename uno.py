@@ -1,4 +1,5 @@
 from game import *
+from sys import argv
 
 
 def main():
@@ -13,9 +14,8 @@ def main():
     deck_size = int(input("Deck size: "))
     initial_cards = int(input("Initial cards: "))
 
-    game = Game(players=players,
-                deck_size=deck_size,
-                initial_cards=initial_cards)
+    cheats = argv[1] == '--cheats' or argv[1] == '-C'
+    game = Game(players, deck_size, initial_cards, cheats=cheats)
 
     while game.active:
         if game.get_winner() is not None:
@@ -27,6 +27,8 @@ def main():
             if game.turn.is_computer:
                 computer_turn = ComputerTurn(game)
                 card = computer_turn.get_result()
+                if game.cheats:
+                    print(f"Opponent's cards: {game.turn.hand}")
                 print(f"Computer put {card}")
                 game.play(card, game.turn)
             else:
@@ -38,7 +40,7 @@ def main():
                     game.draw(game.turn)
                 else:
                     if card_input in ['WILDCARD', '+4']:
-                        card = Card(card_input, 'BLUE')
+                        card = Card(card_input, random.choice(Card.COLORS))
                     else:
                         try:
                             card_type, card_color = card_input.split(' ')
