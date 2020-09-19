@@ -7,7 +7,10 @@ def main():
     print("Please type the player names.")
     print("Hint: type \"Computer\" to play with the computer.")
     for i in range(1, 10):
-        players.append(Player(input(f"Player {i}: ")))
+        player_name = input(f"Player {i}: ")
+        if player_name.lower() == 'computer':
+            player_name = player_name.title()
+        players.append(Player(player_name))
         if i == 2:
             print("More than two players are not supported for now.")  # TODO
             break
@@ -44,7 +47,7 @@ def main():
                     game.draw(game.turn)
                 else:
                     if card_input in ['WILDCARD', '+4']:
-                        card = Card(card_input, random.choice(Card.COLORS))
+                        card = Card(card_input, 'BLUE')
                     else:
                         try:
                             card_type, card_color = card_input.split(' ')

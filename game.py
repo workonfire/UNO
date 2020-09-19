@@ -18,7 +18,7 @@ class Card:
         self.card_type: [None, str] = card_type
         self.is_wild: bool = self.card_type in ['WILDCARD', '+4']
         if self.is_wild:
-            self.color = random.choice(self.COLORS)
+            self.color = 'BLUE'
         if self.card_type not in self.TYPES or self.color not in self.COLORS:
             if self.card_type is not None:
                 raise InvalidCardException(f"{self.card_type}/{self.color} is not a valid card object.")
