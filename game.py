@@ -83,22 +83,27 @@ class Player:
     def __init__(self, name=None):
         self.hand: List[Card] = []
         self.name: str = name
-        self.is_computer: bool = self.name == 'Computer'
 
     def __repr__(self) -> str:
         return f'{self.name}: ' + ', '.join([str(self.hand)])
 
+    @property
+    def is_computer(self) -> bool:
+        if self.name is not None:
+            return 'computer' in self.name
+        return False
+
 
 class Table:
-    def __init__(self, players: List[Player], deck_size: int, initial_cards: int):
+    def __init__(self, players: List[Player], rules: dict):
+        self.rules = rules
         self.players: List[Player] = players
-        self.initial_cards: int = initial_cards
 
-        self.deck: Deck = Deck(deck_size)
+        self.deck: Deck = Deck(self.rules['deck_size'])
         self.stack: List[Card] = [self.deck.draw()]
 
         for player in players:
-            player.hand = self.deck.draw(self.initial_cards)
+            player.hand = self.deck.draw(self.rules['initial_cards'])
 
         self.turn: Player = self.players[0]  # This was random at some point.
 
@@ -106,40 +111,65 @@ class Table:
     def last_played_card(self) -> Card:
         return self.stack[0]
 
-    def play(self, card: Card, player: Player, check_possession: bool = True):
+    def safe_deck_draw(self, amount: int = 1) -> [List[Card], Card]:
+        """
+        Tries to draw a specifief amount of cards. If it fails, the deck is getting shuffled.
+        """
+        try:
+            cards = self.deck.draw(amount)
+        except IndexError:
+            self.shuffle_cards()
+            cards = self.deck.draw(amount)
+        return cards
+
+    def play(self, card: Card, player: Player, stacking: bool = False):
         """
         Puts the selected card on top of the stack.
+        :param card: card object.
+        :param player: player object.
+        :param stacking: describes if the player is currently in the middle of card-stacking.
         """
         if card.playable(self.last_played_card):
-            if check_possession and card not in player.hand:
-                raise CardNotInPossessionError("You do not have that card in your hand.")
+            if card not in player.hand:
+                raise CardNotInPossessionError(f"The player {player} does not have {card} card in hand.")
             self.stack.insert(0, card)
             player.hand.remove(card)
+
             if card.is_wild:
                 if self.turn.is_computer:
-                    new_color = ComputerTurn(self).most_reasonable_color
+                    new_color = TurnWrapper(self).most_reasonable_color
                 else:
                     new_color = input("Please input a new card color: ").upper()  # TODO: Language file
                 if card.card_type == '+4':
-                    new_cards = self.deck.draw(4)
+                    new_cards = self.safe_deck_draw(4)
                     for new_card in new_cards:
                         self.opponent.hand.append(new_card)
                 new_card = Card(None, new_color)
                 self.stack.insert(0, new_card)
-            elif card.card_type == '+2':
-                new_cards = self.deck.draw(2)
-                for new_card in new_cards:
-                    self.opponent.hand.append(new_card)
-            if card.card_type not in ['SKIP', 'REVERSE']:
+            else:
+                if card.card_type == '+2':  # TODO: Queue +2 and +4 stacking
+                    new_cards = self.safe_deck_draw(2)
+                    for new_card in new_cards:
+                        self.opponent.hand.append(new_card)
+
+                if self.rules['card_stacking']:
+                    for playable_card in TurnWrapper(self).playable_cards:
+                        if not playable_card.is_wild and playable_card.card_type == self.last_played_card.card_type \
+                                and card in player.hand:  # Hotfix
+                            # take_out(playable_card, player)
+                            self.play(playable_card, player, stacking=True)
+                            print(f"Took out {playable_card}")
+
+            if card.card_type not in ['SKIP', 'REVERSE'] and not stacking:
                 self.next_turn()
         else:
-            raise CardNotPlayableError("You cannot play with this type of card.")
+            raise CardNotPlayableError(f"The player {player} cannot play with {card}.")
 
-    def draw(self, player: Player, amount: int = 1):
+    def deal_card(self, player: Player, amount: int = 1):
         """
         Gives the player a card from the deck.
         """
-        cards = self.deck.draw(amount)
+        cards = self.safe_deck_draw(amount)
         if amount > 1:
             for card in cards:
                 player.hand.append(card)
@@ -153,7 +183,8 @@ class Table:
         """
         old_cards = self.stack[1:]
         random.shuffle(old_cards)
-        self.deck.stack = old_cards
+        for card in old_cards:
+            self.deck.stack.append(card)
 
     @property
     def opponent(self) -> Player:
@@ -170,13 +201,12 @@ class Table:
 
 
 class Game(Table):
-    def __init__(self, players: List[Player], deck_size: int, initial_cards: int, cheats: bool = False):
-        super().__init__(players, deck_size, initial_cards)
+    def __init__(self, players: List[Player], rules: dict):
+        super().__init__(players, rules)
         self.active: bool = True
         self.winner: [None, Player] = None
-        self.cheats = cheats
         while self.last_played_card.is_wild:
-            self.stack.insert(0, self.deck.draw())
+            self.stack.insert(0, self.safe_deck_draw())
 
     def end(self):
         """
@@ -205,7 +235,7 @@ class Game(Table):
         self.end()
 
 
-class ComputerTurn:
+class TurnWrapper:
     def __init__(self, table: Table):
         self.table = table
         self.last_card: Card = self.table.last_played_card
@@ -228,5 +258,5 @@ class ComputerTurn:
 
     def get_result(self) -> Card:
         while not self.playable_cards:
-            self.table.draw(self.table.turn)
+            self.table.deal_card(self.table.turn)
         return random.choice(self.playable_cards)

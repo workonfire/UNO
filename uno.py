@@ -5,24 +5,27 @@ from sys import argv
 def main():
     players = []
     print("Please type the player names.")
-    print("Hint: type \"Computer\" to play with the computer.")
+    print("Hint: type \"computer\" to play with the computer.")
     for i in range(1, 10):
-        player_name = input(f"Player {i}: ")
-        if player_name.lower() == 'computer':
-            player_name = player_name.title()
+        player_name = input(f"Player {i}: ").lower()
         players.append(Player(player_name))
         if i == 2:
             print("More than two players are not supported for now.")  # TODO
             break
     deck_size = int(input("Deck size: "))
     initial_cards = int(input("Initial cards: "))
+    card_stacking = input("Card stacking (y/n): ").lower() == 'y'
 
     if len(argv) > 1:
         cheats = argv[1] == '--cheats' or argv[1] == '-C'
     else:
-        cheats = False
+        cheats = True  # TODO: DEBUG
 
-    game = Game(players, deck_size, initial_cards, cheats=cheats)
+    rules = {'deck_size': deck_size,
+             'initial_cards': initial_cards,
+             'cheats': cheats,
+             'card_stacking': card_stacking}
+    game = Game(players, rules)
 
     while game.active:
         if game.get_winner() is not None:
@@ -32,22 +35,19 @@ def main():
         print(f"\nTurn: {game.turn.name}")
         while True:
             if game.turn.is_computer:
-                computer_turn = ComputerTurn(game)
+                computer_turn = TurnWrapper(game)
                 card = computer_turn.get_result()
-                if game.cheats:
-                    print(f"Opponent's cards: {game.turn.hand}")
                 print(f"Computer put {card}")
                 game.play(card, game.turn)
+                print(f"Opponent's cards: {game.opponent}" if game.rules['cheats'] else f"Opponent's remaining cards: "
+                                                                                        f"{len(game.opponent.hand)}")
             else:
                 print(f"Your cards: {game.turn.hand}")
                 print(f"Current card: {game.last_played_card}")
                 card = None
                 card_input = input("Please input the card that you want to play (or type D to draw): ").upper()
                 if card_input == 'D':
-                    try:
-                        game.draw(game.turn)
-                    except IndexError:
-                        game.shuffle_cards()
+                    game.deal_card(game.turn)
                 else:
                     if card_input in ['WILDCARD', '+4']:
                         card = Card(card_input, 'BLUE')

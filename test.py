@@ -65,12 +65,14 @@ class UNOTest(unittest.TestCase):
     def test_table(self):
         """
         Actual game mechanics tests
-        :return:
         """
 
         # Creating a table
         players = [Player("Human"), Player("Computer")]
-        table = Table(players, deck_size=50, initial_cards=10)
+        rules = {'card_stacking': False,
+                 'deck_size': 50,
+                 'initial_cards': 10}
+        table = Table(players, rules)
         print(f"Current players: {table.players}")
         print(f"Deck contents: {table.deck.stack}")
         print(f"Table stack: {table.stack}")
