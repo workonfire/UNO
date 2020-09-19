@@ -13,16 +13,19 @@ class Card:
 
     # Some functional cards were skipped for now, since they're pointless in a 1v1 game.
 
-    def __init__(self, card_type: str, color: str):
+    def __init__(self, card_type: [None, str], color: str):
         self.color: str = color
-        self.card_type: str = card_type
+        self.card_type: [None, str] = card_type
         self.is_wild: bool = self.card_type in ['WILDCARD', '+4']
         if self.is_wild:
             self.color = 'BLUE'
         if self.card_type not in self.TYPES or self.color not in self.COLORS:
-            raise InvalidCardException(f"{self.card_type}/{self.color} is not a valid card object.")
+            if self.card_type is not None:
+                raise InvalidCardException(f"{self.card_type}/{self.color} is not a valid card object.")
 
     def __repr__(self) -> str:
+        if self.card_type is None:
+            return self.color
         return f'{self.card_type}' if self.is_wild else f'{self.card_type} {self.color}'
 
     def __eq__(self, other) -> bool:
@@ -80,6 +83,7 @@ class Player:
     def __init__(self, name=None):
         self.hand: List[Card] = []
         self.name: str = name
+        self.is_computer: bool = self.name == 'Computer'
 
     def __repr__(self) -> str:
         return f'{self.name}: ' + ', '.join([str(self.hand)])
@@ -112,20 +116,21 @@ class Table:
             self.stack.insert(0, card)
             player.hand.remove(card)
             if card.is_wild:
-                # TODO: A more proper way to select a color.
-                new_color = input("Please input a new card color: ")  # TODO: Language file
-                new_card = Card(random.choice([str(i) for i in range(10)]), new_color)
-                self.stack.insert(0, new_card)
+                if self.turn.is_computer:
+                    new_color = ComputerTurn(self).most_reasonable_color
+                else:
+                    new_color = input("Please input a new card color: ").upper()  # TODO: Language file
                 if card.card_type == '+4':
                     new_cards = self.deck.draw(4)
-                    for card in new_cards:
-                        self.get_opponent().hand.append(card)
+                    for new_card in new_cards:
+                        self.opponent.hand.append(new_card)
+                new_card = Card(None, new_color)
+                self.stack.insert(0, new_card)
             elif card.card_type == '+2':
                 new_cards = self.deck.draw(2)
-                for card in new_cards:
-                    self.get_opponent().hand.append(card)
+                for new_card in new_cards:
+                    self.opponent.hand.append(new_card)
             if card.card_type not in ['SKIP', 'REVERSE']:
-                print("Turn changed.")
                 self.next_turn()
         else:
             raise CardNotPlayableError("You cannot play with this type of card.")
@@ -141,7 +146,8 @@ class Table:
         else:
             player.hand.append(cards)
 
-    def get_opponent(self) -> Player:
+    @property
+    def opponent(self) -> Player:
         """
         I know, it's ugly. I haven't figured out a queue system yet, since this is just a 1v1 game.
         """
@@ -151,7 +157,7 @@ class Table:
         """
         Switches the table turn.
         """
-        self.turn = self.get_opponent()
+        self.turn = self.opponent
 
 
 class Game(Table):
@@ -211,7 +217,4 @@ class ComputerTurn:
     def get_result(self) -> Card:
         while not self.playable_cards:
             self.table.draw(self.table.turn)
-        card = random.choice(self.playable_cards)
-        if card.is_wild:  # TODO
-            pass
-        return card
+        return random.choice(self.playable_cards)

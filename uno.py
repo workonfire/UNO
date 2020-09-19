@@ -4,7 +4,7 @@ from game import *
 def main():
     players = []
     print("Please type the player names.")
-    print("Hint: type \"Computer\" to play with the computer.")  # TODO
+    print("Hint: type \"Computer\" to play with the computer.")
     for i in range(1, 10):
         players.append(Player(input(f"Player {i}: ")))
         if i == 2:
@@ -20,31 +20,41 @@ def main():
     while game.active:
         if game.get_winner() is not None:
             game.win(game.get_winner())
-            print(f"Winner: {game.winner}")
+            print(f"Winner: {game.winner.name}")
             break
         print(f"\nTurn: {game.turn.name}")
-        print(f"Your cards: {game.turn.hand}")
-        print(f"Current card: {game.last_played_card}")
         while True:
-            card_input = input("Please input the card that you want to play (or type D to draw): ").upper()
-            card = None
-            if card_input == 'D':
-                game.draw(game.turn)
+            if game.turn.is_computer:
+                computer_turn = ComputerTurn(game)
+                card = computer_turn.get_result()
+                print(f"Computer put {card}")
+                game.play(card, game.turn)
             else:
-                if card_input in ['WILDCARD', '+4']:
-                    card = Card(card_input, 'BLUE')
+                print(f"Your cards: {game.turn.hand}")
+                print(f"Current card: {game.last_played_card}")
+                card = None
+                card_input = input("Please input the card that you want to play (or type D to draw): ").upper()
+                if card_input == 'D':
+                    game.draw(game.turn)
                 else:
-                    card_type, card_color = card_input.split(' ')
+                    if card_input in ['WILDCARD', '+4']:
+                        card = Card(card_input, 'BLUE')
+                    else:
+                        try:
+                            card_type, card_color = card_input.split(' ')
+                            card = Card(card_type, card_color)
+                        except InvalidCardException:
+                            print("That card is not a valid card.")
+                        except ValueError:
+                            print("Incorrect input. Please type a card name, e.g. \"7 GREEN\"")
                     try:
-                        card = Card(card_type, card_color)
-                    except InvalidCardException:
-                        print("That card is not a valid card.")
-                try:
-                    game.play(card, game.turn)
-                except CardNotPlayableError:
-                    print("That card is not playable.")
-                except CardNotInPossessionError:
-                    print("You do not have that card in your hand.")
+                        game.play(card, game.turn)
+                    except CardNotPlayableError:
+                        print("That card is not playable.")
+                    except CardNotInPossessionError:
+                        print("You do not have that card in your hand.")
+                    except AttributeError:
+                        print("Incorrect card type. Please type a card name, e.g. \"7 GREEN\"")
             break
 
 

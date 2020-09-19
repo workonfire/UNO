@@ -2,6 +2,7 @@
 A simple Python implementation of the UNO game.
 
 ### WARNING: WORK IN PROGRESS.
+It's best to look at the `#TODO` notes inside files.
 
 To-do features:
 - Easy to use API
