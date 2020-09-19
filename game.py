@@ -188,7 +188,7 @@ class Game(Table):
     def win(self, player: Player):
         """
         Sets the game winner and ends it.
-        :param player:
+        :param player: player object
         """
         if self.winner is not None:
             raise WinnerAlreadySetException("The winner has already been set.")

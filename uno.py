@@ -14,7 +14,11 @@ def main():
     deck_size = int(input("Deck size: "))
     initial_cards = int(input("Initial cards: "))
 
-    cheats = argv[1] == '--cheats' or argv[1] == '-C'
+    if len(argv) > 1:
+        cheats = argv[1] == '--cheats' or argv[1] == '-C'
+    else:
+        cheats = False
+
     game = Game(players, deck_size, initial_cards, cheats=cheats)
 
     while game.active:
