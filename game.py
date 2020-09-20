@@ -25,7 +25,7 @@ class Card:
 
     def __repr__(self) -> str:
         if self.card_type is None:
-            return self.color
+            return f'* {self.color}'
         return f'{self.card_type}' if self.is_wild else f'{self.card_type} {self.color}'
 
     def __eq__(self, other) -> bool:
@@ -110,17 +110,6 @@ class Table:
     def last_played_card(self) -> Card:
         return self.stack[0]
 
-    def safe_deck_draw(self, amount: int = 1) -> [List[Card], Card]:
-        """
-        Tries to draw a specifief amount of cards. If it fails, the deck is getting shuffled.
-        """
-        try:
-            cards = self.deck.draw(amount)
-        except IndexError:
-            self.shuffle_cards()
-            cards = self.deck.draw(amount)
-        return cards
-
     def play(self, card: Card, player: Player, stacking: bool = False):
         """
         Puts the selected card on top of the stack.
@@ -137,17 +126,18 @@ class Table:
             if card.is_wild:
                 if self.turn.is_computer:
                     new_color = TurnWrapper(self).most_reasonable_color
+                    print(f"{self.turn.name} changed the color to {new_color}")
                 else:
                     new_color = input("Please input a new card color: ").upper()  # TODO: Language file
                 if card.card_type == '+4':
-                    new_cards = self.safe_deck_draw(4)
+                    new_cards = self.deck.draw(4)
                     for new_card in new_cards:
                         self.opponent.hand.append(new_card)
                 new_card = Card(None, new_color)
                 self.stack.insert(0, new_card)
             else:
                 if card.card_type == '+2':  # TODO: Queue +2 and +4 stacking
-                    new_cards = self.safe_deck_draw(2)
+                    new_cards = self.deck.draw(2)
                     for new_card in new_cards:
                         self.opponent.hand.append(new_card)
 
@@ -166,22 +156,12 @@ class Table:
         """
         Gives the player a card from the deck.
         """
-        cards = self.safe_deck_draw(amount)
+        cards = self.deck.draw(amount)
         if amount > 1:
             for card in cards:
                 player.hand.append(card)
         else:
             player.hand.append(cards)
-
-    def shuffle_cards(self):
-        """
-        Shuffles the cards under the main card and adds them to the deck.
-        :return:
-        """
-        old_cards = self.stack[1:]
-        random.shuffle(old_cards)
-        for card in old_cards:
-            self.deck.stack.append(card)
 
     @property
     def opponent(self) -> Player:
@@ -203,7 +183,7 @@ class Game(Table):
         self.active: bool = True
         self.winner: [None, Player] = None
         while self.last_played_card.is_wild:
-            self.stack.insert(0, self.safe_deck_draw())
+            self.stack.insert(0, self.deck.draw())
 
     def end(self):
         """

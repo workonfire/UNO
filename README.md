@@ -4,6 +4,8 @@ A simple Python implementation of the UNO game.
 ### WARNING: WORK IN PROGRESS.
 It's best to look at the `#TODO` notes inside files.
 
+No screenshots for now, because the current interface is just temporary.
+
 To-do features:
 - Easy to use API
 - Multiplayer
