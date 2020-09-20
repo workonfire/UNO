@@ -42,7 +42,7 @@ class Card:
         else:
             return self.card_type == comparator.card_type or self.color == comparator.color
 
-    def display(self, centered: bool):
+    def display(self, centered: bool = False):
         """
         Creates a visual representation of the card.
         :param centered: whether to center the card on the display, or not
@@ -51,11 +51,10 @@ class Card:
                   'RED': Fore.RED,
                   'GREEN': Fore.GREEN,
                   'YELLOW': Fore.YELLOW}
-        card_types = {'1': CardVisual.CARD_1}  # TODO
         if centered:
-            card_to_display = '\n'.join(card_types.get(self.card_type)).center(get_terminal_size().columns)
+            card_to_display = '\n'.join(CardVisual(self).art).center(get_terminal_size().columns)
         else:
-            card_to_display = '\n'.join(card_types.get(self.card_type))
+            card_to_display = '\n'.join(CardVisual(self).art)
         color_print(colors.get(self.color), card_to_display)
 
 
@@ -95,7 +94,7 @@ class Player:
 
 class Table:
     def __init__(self, players: List[Player], rules: dict):
-        self.rules = rules
+        self.rules: dict = rules
         self.players: List[Player] = players
 
         self.deck: Deck = Deck(self.rules['deck_size'])
@@ -214,7 +213,7 @@ class Game(Table):
 
 class TurnWrapper:
     def __init__(self, table: Table):
-        self.table = table
+        self.table: Table = table
         self.last_card: Card = self.table.last_played_card
         self.hand: List[Card] = self.table.turn.hand
 

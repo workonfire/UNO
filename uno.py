@@ -59,7 +59,7 @@ def main():
                 card_input = input("Please input the card that you want to play (or type D to draw): ")
                 if game.rules['cheats']:
                     try:
-                        cheat_code = card_input.split('C: ')[1]
+                        cheat_code = card_input.split('#')[1]
                         # noinspection PyBroadException
                         try:
                             exec(cheat_code)
