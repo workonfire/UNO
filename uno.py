@@ -1,5 +1,6 @@
 from game import *
 from sys import argv
+import traceback
 
 
 def main():
@@ -7,7 +8,12 @@ def main():
     print("Please type the player names.")
     print("Hint: type \"computer\" to play with the computer.")
     for i in range(1, 10):
-        player_name = input(f"Player {i}: ").lower()
+        while True:
+            player_name = input(f"Player {i}: ").lower()
+            if player_name in [player.name for player in players]:
+                print("That player already exists.")
+            else:
+                break
         players.append(Player(player_name))
         if i == 2:
             print("More than two players are not supported for now.")  # TODO
@@ -39,13 +45,24 @@ def main():
                 card = computer_turn.get_result()
                 print(f"Computer put {card}")
                 game.play(card, game.turn)
-                print(f"Opponent's cards: {game.opponent}" if game.rules['cheats'] else f"Opponent's remaining cards: "
-                                                                                        f"{len(game.opponent.hand)}")
+                print(f"Opponent's remaining cards: {len(game.opponent.hand)}")
             else:
                 print(f"Your cards: {game.turn.hand}")
                 print(f"Current card: {game.last_played_card}")
                 card = None
-                card_input = input("Please input the card that you want to play (or type D to draw): ").upper()
+                card_input = input("Please input the card that you want to play (or type D to draw): ")
+                if game.rules['cheats']:
+                    try:
+                        cheat_code = card_input.split('C: ')[1]
+                        # noinspection PyBroadException
+                        try:
+                            exec(cheat_code)
+                        except Exception:
+                            traceback.print_exc()
+                        break
+                    except IndexError:
+                        pass
+                card_input = card_input.upper()
                 if card_input == 'D':
                     game.deal_card(game.turn)
                 else:

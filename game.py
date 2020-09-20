@@ -37,7 +37,6 @@ class Card:
         :param comparator: card object
         :return: true, if they're similar
         """
-        # TODO: Stacking
         if self.is_wild:
             return True
         else:
@@ -152,11 +151,9 @@ class Table:
                     for new_card in new_cards:
                         self.opponent.hand.append(new_card)
 
-                if self.rules['card_stacking']:
+                if self.rules['card_stacking'] and not stacking:
                     for playable_card in TurnWrapper(self).playable_cards:
-                        if not playable_card.is_wild and playable_card.card_type == self.last_played_card.card_type \
-                                and card in player.hand:  # Hotfix
-                            # take_out(playable_card, player)
+                        if not playable_card.is_wild and playable_card.card_type == self.last_played_card.card_type:
                             self.play(playable_card, player, stacking=True)
                             print(f"Took out {playable_card}")
 

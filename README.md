@@ -10,3 +10,59 @@ To-do features:
 - Interface (cards etc.) displayed as ASCII art
 - Cheat system based on pure Python console
 - Fully customizable rooms with custom game rules
+
+## API Preview
+These are just **examples**.
+- Inspecting a card
+```python
+card = Card('6', 'BLUE')
+other_card = Card('7', 'RED')
+if card.playable(other_card):
+    # This card is playable with the other card.
+```
+
+- Generating a deck
+```python
+deck = Deck(size=50)
+cards: List[Card] = deck.draw(15)
+```
+
+- Inspecting a player
+```python
+player = Player('wzium')
+if player.is_computer:
+    # The player is a computer.
+if len(player.hand) == 0:
+    # The player does not have any card.
+```
+
+- Working with the table
+```python
+players = [Player('Wzium'), Player('Computer')]
+# Custom rules (W.I.P.)
+rules = {'deck_size': 50,
+         'initial_cards': 7,
+         'cheats': False,
+         'card_stacking': True}
+
+table = Table(players, rules)
+table.play(table.turn.hand[0], table.turn) # Gets the user to play the first card 
+print(table.last_played_card) # Get the last player card
+table.deal_card(table.opponent, 5) # Gives 5 cards to the opponent
+```
+
+- Operating with the game
+```python
+game = Game(players, rules)
+while game.active:
+    if game.get_winner() is not None:
+        game.win(game.get_winner())
+```
+
+- Faking a turn
+```python
+turn = TurnWrapper(table)
+print(turn.playable_cards) # gets all currently playable cards
+print(turn.most_reasonable_color) # selects the appriopriate color based on how many times it appears
+print(turn.get_result()) # Prints a card to play with
+```

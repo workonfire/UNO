@@ -7,7 +7,6 @@ class UNOTest(unittest.TestCase):
     def test_card(self):
         """
         Checks, if we can stack a card on top of another card
-        :return:
         """
         with self.assertRaises(InvalidCardException):
             Card('69', 'GREEN')
@@ -31,7 +30,6 @@ class UNOTest(unittest.TestCase):
     def test_deck(self):
         """
         Tries to draw some cards from a deck
-        :return:
         """
         deck = Deck(50)
         print(f"Current deck contents: {deck.stack}")
@@ -45,8 +43,7 @@ class UNOTest(unittest.TestCase):
 
     def test_player(self):
         """
-        Tries to create a player etc
-        :return:
+        Tries to create a player etc.
         """
         player = Player()
         print(f"Player name: {player.name}")
