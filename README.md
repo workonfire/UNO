@@ -11,6 +11,17 @@ To-do features:
 - Cheat system based on pure Python console
 - Fully customizable rooms with custom game rules
 
+#### CLI switches
+- `--debug` or `-D` - always shows the opponent's cards
+- `--cheats` or `-C` - enables the cheat console; example:
+```
+Turn: test
+Your cards: [7 RED, +2 YELLOW, SKIP BLUE]
+Current card: 5 RED
+Please input the card that you want to play (or type D to draw): C: game.opponent.hand = [Card('6', 'BLUE') for _ in range(666)]
+```
+All cheats must be preceded with `C: `.
+
 ## API Preview
 These are just **examples**.
 - Inspecting a card

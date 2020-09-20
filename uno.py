@@ -1,9 +1,17 @@
 from game import *
-from sys import argv
+import argparse
 import traceback
 
 
 def main():
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('-C', '--cheats', action='store_true')
+    argparser.add_argument('-D', '--debug', action='store_true')
+
+    arguments = argparser.parse_args()
+    cheats = arguments.cheats
+    debug = arguments.debug
+
     players = []
     print("Please type the player names.")
     print("Hint: type \"computer\" to play with the computer.")
@@ -21,11 +29,6 @@ def main():
     deck_size = int(input("Deck size: "))
     initial_cards = int(input("Initial cards: "))
     card_stacking = input("Card stacking (y/n): ").lower() == 'y'
-
-    if len(argv) > 1:
-        cheats = argv[1] == '--cheats' or argv[1] == '-C'
-    else:
-        cheats = False
 
     rules = {'deck_size': deck_size,
              'initial_cards': initial_cards,
@@ -45,7 +48,8 @@ def main():
                 card = computer_turn.get_result()
                 print(f"Computer put {card}")
                 game.play(card, game.turn)
-                print(f"Opponent's remaining cards: {len(game.opponent.hand)}")
+                print(f"Opponent's cards: {game.opponent}" if debug else f"Opponent's remaining cards: "
+                                                                         f"{len(game.opponent.hand)}")
             else:
                 print(f"Your cards: {game.turn.hand}")
                 print(f"Current card: {game.last_played_card}")
