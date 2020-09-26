@@ -102,7 +102,8 @@ class Queue:
         self.current_index = 0
         self.direction = 1
 
-    def next_player(self):
+    @property
+    def opponent(self):
         self.current_index += self.direction
         return self.players[self.current_index % len(self.players)]
 
@@ -113,8 +114,7 @@ class Queue:
 class Table(Queue):
     def __init__(self, players: List[Player], rules: dict):
         self.rules: dict = rules
-        self.players: List[Player] = players
-        super().__init__(self.players)
+        super().__init__(players)
 
         self.deck: Deck = Deck(self.rules['deck_size'])
         self.stack: List[Card] = [self.deck.draw()]
@@ -181,15 +181,11 @@ class Table(Queue):
         else:
             player.hand.append(cards)
 
-    @property
-    def opponent(self) -> Player:
-        return self.next_player()
-
     def next_turn(self):
         """
         Switches the table turn.
         """
-        self.turn = self.next_player()
+        self.turn = self.opponent
 
 
 class Game(Table):
