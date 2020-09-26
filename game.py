@@ -92,10 +92,29 @@ class Player:
         return False
 
 
-class Table:
+class Queue:
+    """
+    Thanks to stexx from Python Discord!
+    """
+
+    def __init__(self, players):
+        self.players = players
+        self.current_index = 0
+        self.direction = 1
+
+    def next_player(self):
+        self.current_index += self.direction
+        return self.players[self.current_index % len(self.players)]
+
+    def reverse(self):
+        self.direction *= -1
+
+
+class Table(Queue):
     def __init__(self, players: List[Player], rules: dict):
         self.rules: dict = rules
         self.players: List[Player] = players
+        super().__init__(self.players)
 
         self.deck: Deck = Deck(self.rules['deck_size'])
         self.stack: List[Card] = [self.deck.draw()]
@@ -164,16 +183,13 @@ class Table:
 
     @property
     def opponent(self) -> Player:
-        """
-        I know, it's ugly. I haven't figured out a queue system yet, since this is just a 1v1 game.
-        """
-        return self.players[0] if self.turn == self.players[1] else self.players[1]
+        return self.next_player()
 
     def next_turn(self):
         """
         Switches the table turn.
         """
-        self.turn = self.opponent
+        self.turn = self.next_player()
 
 
 class Game(Table):

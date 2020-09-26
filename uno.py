@@ -25,9 +25,6 @@ def main():
             else:
                 break
         players.append(Player(player_name))
-        if i == 2:
-            color_print(Fore.RED, "More than two players are not supported for now.")  # TODO
-            break
     deck_size = int(input("Deck size: "))
     initial_cards = int(input("Initial cards: "))
     card_stacking = input("Card stacking (y/n): ").lower() == 'y'
