@@ -31,7 +31,7 @@ These are just **examples**.
 card = Card('6', 'BLUE')
 other_card = Card('7', 'RED')
 if card.playable(other_card):
-    # This card is playable with the other card.
+    print("This card is playable with the other card.")
 ```
 
 - Generating a deck
@@ -44,9 +44,9 @@ cards: List[Card] = deck.draw(15)
 ```python
 player = Player('wzium')
 if player.is_computer:
-    # The player is a computer.
+    print("The player is a computer.")
 if len(player.hand) == 0:
-    # The player does not have any card.
+    print("The player does not have any card.")
 ```
 
 - Working with the table
