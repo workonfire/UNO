@@ -1,7 +1,7 @@
 # UNO
 A simple Python implementation of the UNO game.
 
-### WARNING: WORK IN PROGRESS. Don't expect it to work.
+### WARNING: WORK IN PROGRESS.
 It's best to look at the `#TODO` notes inside files.
 
 No screenshots for now, because the current interface is just temporary.

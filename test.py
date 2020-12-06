@@ -65,10 +65,7 @@ class UNOTest(unittest.TestCase):
         """
 
         # Creating a table
-        players = [Player("Human"),
-                   Player("Computer1"),
-                   Player("Computer2"),
-                   Player("Computer3")]
+        players = [Player("Human"), Player("Computer")]
         rules = {'card_stacking': False,
                  'deck_size': 50,
                  'initial_cards': 10}
@@ -94,15 +91,8 @@ class UNOTest(unittest.TestCase):
 
         # Checks if the queue order is correct
         for i in range(10):
-            table.next_turn()
             print(f"Current turn: {table.turn.name}. Next turn...")
-
-        table.reverse()
-        print("The turn got reversed.")
-
-        for i in range(10):
             table.next_turn()
-            print(f"Current turn: {table.turn.name}. Next turn...")
 
 
 if __name__ == '__main__':
