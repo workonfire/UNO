@@ -1,37 +1,42 @@
 import random
+from enum import Enum
+
 from visuals import color_print, CardVisual
 from colorama import Fore
 from shutil import get_terminal_size
 from exceptions import *
 
-from typing import List
+from typing import List, Union, Dict, Any
+
+CardColor: Enum = Enum('Color', ('BLUE', 'RED', 'GREEN', 'YELLOW'))
+CardType: Enum = Enum('CardType',
+                      ['CARD_' + str(i) for i in range(10)] +  # cards from 0 to 9
+                      ['CARD_PLUS_2', 'CARD_PLUS_4', 'CARD_SKIP', 'CARD_WILDCARD', 'CARD_REVERSE']
+                      )
 
 
 class Card:
-    COLORS = ['BLUE', 'RED', 'GREEN', 'YELLOW']
-    TYPES = [str(i) for i in range(10)] + ['+2', '+4', 'SKIP', 'WILDCARD', 'REVERSE']
-
-    # Some functional cards were skipped for now, since they're pointless in a 1v1 game.
-
-    def __init__(self, card_type: [None, str], color: str):
-        self.color: str = color
-        self.card_type: [None, str] = card_type
-        self.is_wild: bool = self.card_type in ['WILDCARD', '+4']
-        if self.is_wild:
-            self.color = 'BLUE'
-        if self.card_type not in self.TYPES or self.color not in self.COLORS:
-            if self.card_type is not None:
-                raise InvalidCardException(f"{self.card_type}/{self.color} is not a valid card object.")
+    def __init__(self, card_type: Union[None, CardType], color: CardColor):
+        self.card_type: Union[None, CardType] = card_type
+        self.is_wild: bool = self.card_type in (CardType.CARD_WILDCARD, CardType.CARD_PLUS_4)
+        self.color: CardColor = CardColor.BLUE if self.is_wild else color
 
     def __repr__(self) -> str:
         if self.card_type is None:
-            return f'* {self.color}'
-        return f'{self.card_type}' if self.is_wild else f'{self.card_type} {self.color}'
+            return f'* {self.color.name}'
+        return f'{self.card_type.name}' if self.is_wild else f'{self.card_type.name} {self.color.name}'
 
-    def __eq__(self, other) -> bool:
-        return self.card_type == other.card_type and self.color == other.color
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Card):
+            return self.card_type == other.card_type and self.color == other.color
+        else:
+            return NotImplemented
 
-    def playable(self, comparator) -> bool:
+    @staticmethod
+    def _get_pretty_color_name(color: CardColor) -> str:  # TODO
+        ...
+
+    def playable(self, comparator: 'Card') -> bool:
         """
         Compares two cards between their types and colors.
         :param comparator: card object
@@ -62,11 +67,11 @@ class Deck:
     def __init__(self, size: int):
         self.stack: List[Card] = []
         for i in range(size):
-            card_type = random.choice(Card.TYPES)
-            color = random.choice(Card.COLORS)
+            card_type: CardType = random.choice([*CardType])
+            color: CardColor = random.choice([*CardColor])
             self.stack.append(Card(card_type, color))
 
-    def draw(self, number: int = 1) -> [List[Card], Card]:
+    def draw(self, number: int = 1) -> Union[List[Card], Card]:
         """
         Draws a specified amount of cards.
         :param number: a number of cards that you want to draw. Default is 1.
@@ -78,32 +83,24 @@ class Deck:
 
 
 class Player:
-    def __init__(self, name=None):
+    def __init__(self, name: Union[str, None] = None):
         self.hand: List[Card] = []
         self.name: str = name
+        self.is_computer = 'computer' in self.name if self.name is not None else False
 
     def __repr__(self) -> str:
         return f'{self.name}: ' + ', '.join([str(self.hand)])
 
-    @property
-    def is_computer(self) -> bool:
-        if self.name is not None:
-            return 'computer' in self.name
-        return False
-
 
 class Table:
-    def __init__(self, players: List[Player], rules: dict):
-        self.rules: dict = rules
+    def __init__(self, players: List[Player], rules: Dict[str, Any]):
+        self.rules: Dict[str, Any] = rules
         self.players: List[Player] = players
-
         self.deck: Deck = Deck(self.rules['deck_size'])
         self.stack: List[Card] = [self.deck.draw()]
-
         for player in players:
             player.hand = self.deck.draw(self.rules['initial_cards'])
-
-        self.turn: Player = self.players[0]  # This was random at some point.
+        self.turn: Player = self.players[0]
 
     @property
     def last_played_card(self) -> Card:
@@ -124,19 +121,20 @@ class Table:
 
             if card.is_wild:
                 if self.turn.is_computer:
-                    new_color = TurnWrapper(self).most_reasonable_color
+                    new_color: CardColor = TurnWrapper(self).most_reasonable_color
                     print(f"{self.turn.name} changed the color to {new_color}")
                 else:
-                    new_color = input("Please input a new card color: ").upper()  # TODO: Language file
-                if card.card_type == '+4':
-                    new_cards = self.deck.draw(4)
+                    new_color: CardColor = CardColor[input("Please input a new card color: ").upper()]  # TODO:
+                    # Language file
+                if card.card_type == CardType.CARD_PLUS_4:
+                    new_cards: List[Card] = self.deck.draw(4)
                     for new_card in new_cards:
                         self.opponent.hand.append(new_card)
-                new_card = Card(None, new_color)
+                new_card: Card = Card(None, new_color)
                 self.stack.insert(0, new_card)
             else:
-                if card.card_type == '+2':  # TODO: Queue +2 and +4 stacking
-                    new_cards = self.deck.draw(2)
+                if card.card_type == CardType.CARD_PLUS_2:  # TODO: Queue +2 and +4 stacking
+                    new_cards: List[Card] = self.deck.draw(2)
                     for new_card in new_cards:
                         self.opponent.hand.append(new_card)
 
@@ -146,7 +144,7 @@ class Table:
                             self.play(playable_card, player, stacking=True)
                             print(f"Took out {playable_card}")
 
-            if card.card_type not in ['SKIP', 'REVERSE'] and not stacking:
+            if card.card_type not in (CardType.CARD_SKIP, CardType.CARD_REVERSE) and not stacking:
                 self.next_turn()
         else:
             raise CardNotPlayableError(f"The player {player} cannot play with {card}.")
@@ -155,7 +153,7 @@ class Table:
         """
         Gives the player a card from the deck.
         """
-        cards = self.deck.draw(amount)
+        cards: Union[List[Card], Card] = self.deck.draw(amount)
         if amount > 1:
             for card in cards:
                 player.hand.append(card)
@@ -173,14 +171,14 @@ class Table:
         """
         Switches the table turn.
         """
-        self.turn = self.opponent
+        self.turn: Player = self.opponent
 
 
 class Game(Table):
-    def __init__(self, players: List[Player], rules: dict):
+    def __init__(self, players: List[Player], rules: Dict[str, Any]):
         super().__init__(players, rules)
         self.active: bool = True
-        self.winner: [None, Player] = None
+        self.winner: Union[None, Player] = None
         while self.last_played_card.is_wild:
             self.stack.insert(0, self.deck.draw())
 
@@ -190,15 +188,16 @@ class Game(Table):
         """
         if not self.active:
             raise RuntimeError("The game is already inactive.")
-        self.active = False
+        self.active: bool = False
 
-    def get_winner(self) -> Player:
+    def get_winner(self) -> Union[Player, None]:
         """
         Checks if somebody has won the game.
         """
         for player in self.players:
             if not player.hand:
                 return player
+        return None
 
     def win(self, player: Player):
         """
@@ -207,7 +206,7 @@ class Game(Table):
         """
         if self.winner is not None:
             raise WinnerAlreadySetException("The winner has already been set.")
-        self.winner = player
+        self.winner: Player = player
         self.end()
 
 
@@ -219,17 +218,17 @@ class TurnWrapper:
 
     @property
     def playable_cards(self) -> List[Card]:
-        playable_cards = []
+        playable_cards: List[Card] = []
         for card in self.hand:
             if card.playable(self.last_card):
                 playable_cards.append(card)
         return playable_cards
 
     @property
-    def most_reasonable_color(self) -> str:
-        card_colors = [card.color for card in self.playable_cards]
+    def most_reasonable_color(self) -> CardColor:
+        card_colors: List[CardColor] = [card.color for card in self.playable_cards]
         if not card_colors:
-            return random.choice(Card.COLORS)
+            return random.choice([*CardColor])
         return max(set(card_colors), key=card_colors.count)
 
     def get_result(self) -> Card:
