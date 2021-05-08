@@ -8,20 +8,26 @@ class UNOTest(unittest.TestCase):
         """
         Checks, if we can stack a card on top of another card
         """
-        with self.assertRaises(InvalidCardException):
-            Card('69', 'GREEN')
-        card = Card('+2', 'YELLOW')
-        second_card = Card('5', 'RED')
+        card = Card(CardType.CARD_PLUS_2, CardColor.YELLOW)
+        second_card = Card(CardType.CARD_5, CardColor.RED)
         self.assertEqual(card.playable(second_card), False)
         print(f"You cannot stack {second_card} on top of {card}")
 
-        card = Card('+4', 'BLUE')
-        second_card = ('4', 'GREEN')
+        card = Card(CardType.CARD_PLUS_4, CardColor.BLUE)
+        second_card = Card(CardType.CARD_PLUS_4, CardColor.GREEN)
         self.assertEqual(card.playable(second_card), True)
 
-        card = Card('+4', 'BLUE')
-        second_card = ('4', 'BLUE')
+        card = Card(CardType.CARD_PLUS_4, CardColor.BLUE)
+        second_card = Card(CardType.CARD_4, CardColor.BLUE)
         self.assertEqual(card.playable(second_card), True)
+
+    def test_wildcard(self):
+        wildcard = Card(CardType.CARD_WILDCARD, CardColor.GREEN)
+        self.assertEqual(wildcard.is_wild, True)
+        second_wildcard = Card(CardType.CARD_PLUS_4, CardColor.BLUE)
+        self.assertEqual(second_wildcard.is_wild, True)
+        not_wildcard = Card(CardType.CARD_4, CardColor.RED)
+        self.assertEqual(not_wildcard.is_wild, False)
 
     def test_drawing(self):  # TODO
         with self.assertRaises(NotImplementedError):
@@ -51,7 +57,7 @@ class UNOTest(unittest.TestCase):
 
     def test_player_deal(self):
         player = Player("Test")
-        player.hand = [Card('5', 'GREEN'), Card('6', 'YELLOW')]
+        player.hand = [Card(CardType.CARD_5, CardColor.GREEN), Card(CardType.CARD_6, CardColor.YELLOW)]
         print(player.hand)
         new_cards = Deck(50).draw(5)
         for card in new_cards:
@@ -81,7 +87,8 @@ class UNOTest(unittest.TestCase):
             card = random.choice(table.turn.hand)
             print(f"Trying to play with {card} on {table.last_played_card}...")
             table.play(card, table.turn)
-            self.assertEqual(len(table.stack), 2)
+            print(table.stack)
+            self.assertEqual(len(table.stack), 2)  # FIXME: This test fails. I don't yet know why.
             print("The attempt was successful, and the deck size is now 2.")
         except CardNotPlayableError:
             print("The attempt was unsuccessful, and the deck size is still 1.")
