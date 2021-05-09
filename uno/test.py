@@ -13,18 +13,22 @@ class UNOTest(unittest.TestCase):
         self.assertEqual(card.playable(second_card), False)
         print(f"You cannot stack {second_card} on top of {card}")
 
-        card = Card(CardType.CARD_PLUS_4, CardColor.BLUE)
-        second_card = Card(CardType.CARD_PLUS_4, CardColor.GREEN)
+        card = Card(CardType.CARD_PLUS_4, None)
+        second_card = Card(CardType.CARD_PLUS_4, None)
         self.assertEqual(card.playable(second_card), True)
 
-        card = Card(CardType.CARD_PLUS_4, CardColor.BLUE)
+        card = Card(CardType.CARD_PLUS_4, None)
         second_card = Card(CardType.CARD_4, CardColor.BLUE)
         self.assertEqual(card.playable(second_card), True)
 
     def test_wildcard(self):
-        wildcard: Card = Card(CardType.CARD_WILDCARD, CardColor.GREEN)
+        for _ in range(50):
+            self.assertEqual(Card(CardType.CARD_WILDCARD, CardColor.GREEN).color, None)
+            self.assertEqual(Card(CardType.CARD_WILDCARD, CardColor.BLUE).card_type, CardType.CARD_WILDCARD)
+
+        wildcard: Card = Card(CardType.CARD_WILDCARD, None)
         self.assertEqual(wildcard.is_wild, True)
-        second_wildcard: Card = Card(CardType.CARD_PLUS_4, CardColor.BLUE)
+        second_wildcard: Card = Card(CardType.CARD_PLUS_4, None)
         self.assertEqual(second_wildcard.is_wild, True)
         not_wildcard: Card = Card(CardType.CARD_4, CardColor.RED)
         self.assertEqual(not_wildcard.is_wild, False)

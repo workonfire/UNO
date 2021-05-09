@@ -1,6 +1,6 @@
 import random
 
-from uno.types import *
+from uno.enums import *
 from uno.exceptions import *
 from colorama import Fore
 from shutil import get_terminal_size
@@ -9,15 +9,21 @@ from typing import List, Union, Dict, Any
 
 
 class Card:
-    def __init__(self, card_type: Union[None, CardType], color: CardColor):
+    def __init__(self, card_type: Union[None, CardType], color: Union[None, CardColor]):
         self.card_type: Union[None, CardType] = card_type
         self.is_wild: bool = self.card_type in (CardType.CARD_WILDCARD, CardType.CARD_PLUS_4)
-        self.color: CardColor = CardColor.BLUE if self.is_wild else color
+        self.color: Union[None, CardColor] = None if self.is_wild else color
+        if self.color is None and not self.is_wild:
+            self.card_type = random.choice((CardType.CARD_WILDCARD, CardType.CARD_PLUS_4))
 
     def __repr__(self) -> str:
-        if self.card_type is None:
+        if self.card_type is None and self.color is not None:
             return f'* {self.color.name}'
-        return f'{self.card_type.name}' if self.is_wild else f'{self.card_type.name} {self.color.name}'
+        card_type_name: str = ' '.join(self.card_type.name.split('_')[1:]).replace('PLUS ', '+')
+        return f'{card_type_name}' if self.is_wild else f'{card_type_name} {self.color.name}'
+
+    def __str__(self) -> str:
+        return self.__repr__()
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Card):
@@ -26,8 +32,9 @@ class Card:
             return NotImplemented
 
     @staticmethod
-    def _get_pretty_color_name(color: CardColor) -> str:  # TODO
-        ...
+    def from_str(value: str) -> 'Card':
+        card_type, card_color = value.upper().split(' ')
+        return Card(getattr(CardType, "CARD_" + card_type.replace('+ ', 'PLUS_')), getattr(CardColor, card_color))
 
     def playable(self, comparator: 'Card') -> bool:
         """
@@ -45,15 +52,11 @@ class Card:
         Creates a visual representation of the card.
         :param centered: whether to center the card on the display, or not
         """
-        colors: Dict[CardColor, Fore] = {CardColor.BLUE: Fore.BLUE,
-                                         CardColor.RED: Fore.RED,
-                                         CardColor.GREEN: Fore.GREEN,
-                                         CardColor.YELLOW: Fore.YELLOW}
         if centered:
             card_to_display: str = '\n'.join(CardVisual(self).art).center(get_terminal_size().columns)
         else:
             card_to_display: str = '\n'.join(CardVisual(self).art)
-        print(colors.get(self.color) + card_to_display + Fore.RESET)
+        print(getattr(Fore, self.color.name) + card_to_display + Fore.RESET)
 
 
 class Deck:

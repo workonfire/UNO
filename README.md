@@ -28,8 +28,8 @@ All cheats must be preceded with `#`.
 These are just **examples**.
 - Inspecting a card
 ```python
-card = Card('6', 'BLUE')
-other_card = Card('7', 'RED')
+card = Card(CardType.CARD_6, CardColor.BLUE)
+other_card = Card.from_str('7 RED')
 if card.playable(other_card):
     print("This card is playable with the other card.")
 ```
@@ -51,12 +51,12 @@ if len(player.hand) == 0:
 
 - Working with the table
 ```python
-players = [Player('Wzium'), Player('Computer')]
+players: List[Player] = [Player('Wzium'), Player('Computer')]
 # Custom rules (W.I.P.)
-rules = {'deck_size': 50,
-         'initial_cards': 7,
-         'cheats': False,
-         'card_stacking': True}
+rules: Dict[str, Any] = {'deck_size': 50,
+                         'initial_cards': 7,
+                         'cheats': False,
+                         'card_stacking': True}
 
 table = Table(players, rules)
 table.play(table.turn.hand[0], table.turn) # Gets the user to play the first card 
