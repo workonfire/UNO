@@ -121,14 +121,13 @@ class Table:
                     new_color: CardColor = TurnWrapper(self).most_reasonable_color
                     print(f"{self.turn.name} changed the color to {new_color}")
                 else:
-                    new_color: CardColor = CardColor[input("Please input a new card color: ").upper()]  # TODO:
-                    # Language file
+                    # TODO: Language file
+                    new_color: CardColor = CardColor[input("Please input a new card color: ").upper()]
                 if card.card_type == CardType.CARD_PLUS_4:
                     new_cards: List[Card] = self.deck.draw(4)
                     for new_card in new_cards:
                         self.opponent.hand.append(new_card)
-                new_card: Card = Card(None, new_color)
-                self.stack.insert(0, new_card)
+                self.stack[0] = Card(None, new_color)
             else:
                 if card.card_type == CardType.CARD_PLUS_2:  # TODO: Queue +2 and +4 stacking
                     new_cards = self.deck.draw(2)

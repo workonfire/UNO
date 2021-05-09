@@ -92,7 +92,7 @@ class UNOTest(unittest.TestCase):
             print(f"Trying to play with {card} on {table.last_played_card}...")
             table.play(card, table.turn)
             print(table.stack)
-            self.assertEqual(len(table.stack), 2)  # FIXME: This test fails. I don't yet know why.
+            self.assertEqual(len(table.stack), 2)
             print("The attempt was successful, and the deck size is now 2.")
         except CardNotPlayableError:
             print("The attempt was unsuccessful, and the deck size is still 1.")
