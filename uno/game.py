@@ -166,6 +166,10 @@ class Table:
         """
         self.turn: Player = self.opponent
 
+    @staticmethod
+    def reverse_queue():
+        return NotImplemented
+
 
 class Game(Table):
     def __init__(self, players: List[Player], rules: Dict[str, Any]):
