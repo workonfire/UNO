@@ -1,6 +1,6 @@
 import unittest
-from game import *
-from exceptions import *
+from uno.game import *
+from uno.exceptions import *
 
 
 class UNOTest(unittest.TestCase):

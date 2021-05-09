@@ -1,18 +1,11 @@
 import random
-from enum import Enum
 
-from visuals import color_print, CardVisual
+from uno.types import *
+from uno.exceptions import *
 from colorama import Fore
 from shutil import get_terminal_size
-from exceptions import *
 
 from typing import List, Union, Dict, Any
-
-CardColor: Enum = Enum('Color', ('BLUE', 'RED', 'GREEN', 'YELLOW'))
-CardType: Enum = Enum('CardType',
-                      ['CARD_' + str(i) for i in range(10)] +  # cards from 0 to 9
-                      ['CARD_PLUS_2', 'CARD_PLUS_4', 'CARD_SKIP', 'CARD_WILDCARD', 'CARD_REVERSE']
-                      )
 
 
 class Card:
@@ -52,15 +45,15 @@ class Card:
         Creates a visual representation of the card.
         :param centered: whether to center the card on the display, or not
         """
-        colors = {'BLUE': Fore.BLUE,
-                  'RED': Fore.RED,
-                  'GREEN': Fore.GREEN,
-                  'YELLOW': Fore.YELLOW}
+        colors: Dict[CardColor, Fore] = {CardColor.BLUE: Fore.BLUE,
+                                         CardColor.RED: Fore.RED,
+                                         CardColor.GREEN: Fore.GREEN,
+                                         CardColor.YELLOW: Fore.YELLOW}
         if centered:
-            card_to_display = '\n'.join(CardVisual(self).art).center(get_terminal_size().columns)
+            card_to_display: str = '\n'.join(CardVisual(self).art).center(get_terminal_size().columns)
         else:
-            card_to_display = '\n'.join(CardVisual(self).art)
-        color_print(colors.get(self.color), card_to_display)
+            card_to_display: str = '\n'.join(CardVisual(self).art)
+        print(colors.get(self.color) + card_to_display + Fore.RESET)
 
 
 class Deck:
