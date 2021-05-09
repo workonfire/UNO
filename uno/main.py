@@ -76,7 +76,7 @@ def main():
                         print(Fore.RED + "Can't draw more cards." + Fore.RESET)
                 else:
                     if card_input in ('WILDCARD', '+4'):
-                        card = Card(CardType["CARD_" + card_input.upper().replace('+ ', "PLUS_")], None)  # TODO
+                        card = Card(CardType["CARD_" + card_input.upper().replace('+', "PLUS_")], None)  # TODO
                     else:
                         try:
                             card = Card.from_str(card_input)
