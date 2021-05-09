@@ -1,5 +1,4 @@
 init:
-	source venv/bin/activate
 	pip install -r requirements.txt
 
 mypy_test:
@@ -16,3 +15,4 @@ install:
 
 archlinux_dist:
 	makepkg -s
+
