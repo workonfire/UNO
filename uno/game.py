@@ -20,6 +20,7 @@ class Card:
         if self.card_type is None and self.color is not None:
             return f'* {self.color.name}'
         card_type_name: str = ' '.join(self.card_type.name.split('_')[1:]).replace('PLUS ', '+')
+        # noinspection PyUnresolvedReferences
         return f'{card_type_name}' if self.is_wild else f'{card_type_name} {self.color.name}'
 
     def __str__(self) -> str:

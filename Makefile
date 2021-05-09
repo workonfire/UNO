@@ -1,9 +1,12 @@
 init:
+	source venv/bin/activate
 	pip install -r requirements.txt
 
-test:
+mypy_test:
 	mypy uno
-	python -m unittest discover uno
+
+test:
+	python -m unittest discover tests
 
 dist:
 	python setup.py sdist
@@ -11,3 +14,5 @@ dist:
 install:
 	pip install .
 
+archlinux_dist:
+	makepkg -s

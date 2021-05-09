@@ -20,7 +20,7 @@ To-do features:
 Turn: test
 Your cards: [7 RED, +2 YELLOW, SKIP BLUE]
 Current card: 5 RED
-Please input the card that you want to play (or type D to draw): #game.opponent.hand = [Card('6', 'BLUE') for _ in range(666)]
+Card (e.g. 4 BLUE, Enter to draw): #game.opponent.hand = [Card.from_str("6 BLUE") for _ in range(666)]
 ```
 All cheats must be preceded with `#`.
 
