@@ -7,11 +7,7 @@ It's best to look at the `#TODO` notes inside files.
 No screenshots for now, because the current interface is just temporary.
 
 To-do features:
-- Easy to use API
-- Multiplayer
-- Interface (cards etc.) displayed as ASCII art
-- Cheat system based on pure Python console
-- Fully customizable rooms with custom game rules
+[TODO.yml](TODO.md)
 
 #### CLI switches
 - `--debug` or `-D` - always shows the opponent's cards

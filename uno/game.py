@@ -35,7 +35,7 @@ class Card:
     @staticmethod
     def from_str(value: str) -> 'Card':
         card_type, card_color = value.upper().split(' ')
-        return Card(getattr(CardType, "CARD_" + card_type.replace('+ ', 'PLUS_')), getattr(CardColor, card_color))
+        return Card(getattr(CardType, "CARD_" + card_type.replace('+', 'PLUS_')), getattr(CardColor, card_color))
 
     def playable(self, comparator: 'Card') -> bool:
         """
@@ -53,10 +53,9 @@ class Card:
         Creates a visual representation of the card.
         :param centered: whether to center the card on the display, or not
         """
+        card_to_display: str = CardVisual(self).art
         if centered:
-            card_to_display: str = '\n'.join(CardVisual(self).art).center(get_terminal_size().columns)
-        else:
-            card_to_display: str = '\n'.join(CardVisual(self).art)
+            card_to_display = card_to_display.center(get_terminal_size().columns)
         print(getattr(Fore, self.color.name) + card_to_display + Fore.RESET)
 
 

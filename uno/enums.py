@@ -1,4 +1,8 @@
 from enum import Enum, auto
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from uno.game import Card
 
 
 class Type(Enum):
@@ -32,31 +36,35 @@ class CardType(Type):
 
 
 class CardVisual:
-    CARD_1: str = """________________
-                     ▌░░░░░░░░░░░░░░▌
-                     ▌░░░░░░░░░░░░░░▌
-                     ▌░░░░░░██╗░░░░░▌
-                     ▌░░░░░███║░░░░░▌
-                     ▌░░░░░╚██║░░░░░▌
-                     ▌░░░░░░██║░░░░░▌
-                     ▌░░░░░░██║░░░░░▌
-                     ▌░░░░░░╚═╝░░░░░▌
-                     ▌░░░░░░░░░░░░░░▌
-                     ▌░░░░░░░░░░░░░░▌
-                     ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯"""
-    CARD_2: str = """________________
-                     ▌░░░░░░░░░░░░░░▌
-                     ▌░░░░░░░░░░░░░░▌
-                     ▌░░░██████╗░░░░▌
-                     ▌░░░╚════██╗░░░▌
-                     ▌░░░░█████╔╝░░░▌
-                     ▌░░░██╔═══╝░░░░▌
-                     ▌░░░███████╗░░░▌
-                     ▌░░░╚══════╝░░░▌
-                     ▌░░░░░░░░░░░░░░▌
-                     ▌░░░░░░░░░░░░░░▌
-                     ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯"""
-    CARD_3: str = """"""  # TODO
+    CARD_0: str = """"""
+    CARD_1: str = """
+    ________________
+    ▌░░░░░░░░░░░░░░▌
+    ▌░░░░░░░░░░░░░░▌
+    ▌░░░░░░██╗░░░░░▌
+    ▌░░░░░███║░░░░░▌
+    ▌░░░░░╚██║░░░░░▌
+    ▌░░░░░░██║░░░░░▌
+    ▌░░░░░░██║░░░░░▌
+    ▌░░░░░░╚═╝░░░░░▌
+    ▌░░░░░░░░░░░░░░▌
+    ▌░░░░░░░░░░░░░░▌
+    ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+    """
+    CARD_2: str = """
+    ________________
+    ▌░░░░░░░░░░░░░░▌
+    ▌░░░░░░░░░░░░░░▌
+    ▌░░░██████╗░░░░▌
+    ▌░░░╚════██╗░░░▌
+    ▌░░░░█████╔╝░░░▌
+    ▌░░░██╔═══╝░░░░▌
+    ▌░░░███████╗░░░▌
+    ▌░░░╚══════╝░░░▌
+    ▌░░░░░░░░░░░░░░▌
+    ▌░░░░░░░░░░░░░░▌
+    ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯"""
+    CARD_3: str = """"""
     CARD_4: str = """"""
     CARD_5: str = """"""
     CARD_6: str = """"""
@@ -69,23 +77,6 @@ class CardVisual:
     CARD_WILDCARD: str = """"""
     CARD_REVERSE: str = """"""
 
-    def __init__(self, card):
-        self.card = card
-
-    @property
-    def art(self) -> str:  # TODO: get rid of the dictionary
-        types = {'1': self.CARD_1,
-                 '2': self.CARD_2,
-                 '3': self.CARD_3,
-                 '4': self.CARD_4,
-                 '5': self.CARD_5,
-                 '6': self.CARD_6,
-                 '7': self.CARD_7,
-                 '8': self.CARD_8,
-                 '9': self.CARD_9,
-                 '+2': self.CARD_PLUS_2,
-                 '+4': self.CARD_PLUS_4,
-                 'SKIP': self.CARD_SKIP,
-                 'WILDCARD': self.CARD_WILDCARD,
-                 'REVERSE': self.CARD_REVERSE}
-        return types.get(self.card.card_type)
+    def __init__(self, card: 'Card'):
+        self.card: 'Card' = card
+        self.art: str = getattr(self, self.card.card_type.name)
