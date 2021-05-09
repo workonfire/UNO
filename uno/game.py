@@ -81,7 +81,7 @@ class Deck:
 class Player:
     def __init__(self, name: Union[str, None] = None):
         self.hand: List[Card] = []
-        self.name: str = name
+        self.name: Union[str, None] = name
         self.is_computer = 'computer' in self.name if self.name is not None else False
 
     def __repr__(self) -> str:
@@ -130,7 +130,7 @@ class Table:
                 self.stack.insert(0, new_card)
             else:
                 if card.card_type == CardType.CARD_PLUS_2:  # TODO: Queue +2 and +4 stacking
-                    new_cards: List[Card] = self.deck.draw(2)
+                    new_cards = self.deck.draw(2)
                     for new_card in new_cards:
                         self.opponent.hand.append(new_card)
 
@@ -206,7 +206,7 @@ class Game(Table):
         """
         if self.winner is not None:
             raise WinnerAlreadySetException("The winner has already been set.")
-        self.winner: Player = player
+        self.winner = player
         self.end()
 
 

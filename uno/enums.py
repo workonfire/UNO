@@ -56,7 +56,7 @@ class CardVisual:
                      ▌░░░░░░░░░░░░░░▌
                      ▌░░░░░░░░░░░░░░▌
                      ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯"""
-    CARD_3: str = """"""
+    CARD_3: str = """"""  # TODO
     CARD_4: str = """"""
     CARD_5: str = """"""
     CARD_6: str = """"""
@@ -73,7 +73,7 @@ class CardVisual:
         self.card = card
 
     @property
-    def art(self) -> str:
+    def art(self) -> str:  # TODO: get rid of the dictionary
         types = {'1': self.CARD_1,
                  '2': self.CARD_2,
                  '3': self.CARD_3,

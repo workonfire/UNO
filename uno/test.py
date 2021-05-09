@@ -176,7 +176,7 @@ class UNOTest(unittest.TestCase):
                 self.assertEqual(table.reverse_queue(), NotImplemented)
             table.next_turn()
             turn_stack.append(table.turn.name)
-        # TODO
+        # TODO: Test the queue system
         """
         self.assertEqual(turn_stack, [
             "Wzium1",
