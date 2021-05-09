@@ -3,7 +3,7 @@ init:
 
 test:
 	mypy uno
-	python -m unittest discover tests
+	python -m unittest discover uno
 
 dist:
 	python setup.py sdist
