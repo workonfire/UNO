@@ -22,6 +22,5 @@ build() {
 package() {
 	cd "$srcdir/$pkgname"
 	python setup.py install --root="$pkgdir/" --optimize=1 --skip-build
-	install -Dm755 uno "$pkgdir"/
 	install -Dm644 LICENSE "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
 }
