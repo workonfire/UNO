@@ -1,18 +1,26 @@
+import sys
+
 from uno.game import *
 import argparse
 import traceback
-from colorama import Fore, init
+from colorama import Fore  # TODO: Color support on Windows
+
+__VERSION__: str = 'ALPHA'
 
 
 def main():
-    init(convert=True)
+    print(f"{Fore.RED}U{Fore.GREEN}N{Fore.BLUE}O{Fore.RESET} {__VERSION__}")
     argparser: argparse.ArgumentParser = argparse.ArgumentParser()
     argparser.add_argument('-C', '--cheats', action='store_true')
     argparser.add_argument('-D', '--debug', action='store_true')
 
-    arguments = argparser.parse_args()
+    arguments: argparse.Namespace = argparser.parse_args()
     cheats: bool = arguments.cheats
     debug: bool = arguments.debug
+
+    logging.basicConfig(stream=sys.stdout,
+                        level=logging.DEBUG if debug else logging.INFO,
+                        format=f'{Fore.BLUE}%(levelname)s: %(message)s{Fore.RESET}')
 
     players: List[Player] = []
     print("Please type the player names.")
@@ -29,7 +37,11 @@ def main():
             print(Fore.RED + "More than two players are not supported for now." + Fore.RESET)  # TODO
             break
     deck_size: int = int(input("Deck size: "))
-    initial_cards: int = int(input("Initial cards: "))
+    while True:
+        initial_cards: int = int(input("Initial cards: "))
+        if initial_cards > 1:
+            break
+        print(Fore.RED + "The number of initial cards can't be lower than 2." + Fore.RESET)
     card_stacking: bool = input("Card stacking (y/n): ").lower() == 'y' or ''
 
     rules: Dict[str, Any] = {'deck_size': deck_size,
@@ -47,16 +59,19 @@ def main():
         while True:
             if game.turn.is_computer:
                 computer_turn: TurnWrapper = TurnWrapper(game)
-                card: Union[None, Card] = computer_turn.get_result()
+                try:
+                    card: Card = computer_turn.get_result()
+                except IndexError:
+                    game.deck.regenerate()
+                    card: Card = computer_turn.get_result()
                 print(Fore.BLUE + f"Computer put {card}" + Fore.RESET)
                 game.play(card, game.turn)
-                print(f"Opponent's cards: {game.opponent}" if debug else f"Opponent's remaining cards: "
-                                                                         f"{len(game.opponent.hand)}")
+                logging.debug(f"Opponent's cards: {game.opponent.hand}")
+                print(f"Opponent's remaining cards: {len(game.opponent.hand)}")
             else:
                 print(f"Your cards: {game.turn.hand}")
                 # game.last_played_card.display()
                 print(Fore.LIGHTMAGENTA_EX + f"Current card: {game.last_played_card}", Fore.RESET)
-                card = None
                 card_input: str = input("Card (e.g. 4 BLUE, Enter to draw): ")
                 if game.rules['cheats']:
                     try:
@@ -75,22 +90,23 @@ def main():
                         game.deal_card(game.turn)
                     except IndexError:
                         print(Fore.RED + "Can't draw more cards." + Fore.RESET)
+                elif card_input == 'PASS':
+                    print("You passed.")
+                    game.next_turn()
                 else:
                     if card_input in ('WILDCARD', '+4'):
                         card = Card(CardType["CARD_" + card_input.upper().replace('+', "PLUS_")], None)
                     else:
-                        try:
-                            card = Card.from_str(card_input)
-                        except InvalidCardException:
-                            print(Fore.RED + "That card is not a valid card." + Fore.RESET)
-                        except ValueError:
-                            print(Fore.RED + "Incorrect input. Please type a card name, e.g. \"7 GREEN\"" + Fore.RESET)
+                        card = Card.from_str(card_input)
                     try:
                         game.play(card, game.turn)
                     except CardNotPlayableError:
-                        print(Fore.RED + "That card is not playable." + Fore.RESET)
+                        print(Fore.RED + f"The card {card!r} is not playable." + Fore.RESET)
                     except CardNotInPossessionError:
-                        print(Fore.RED + "You do not have that card in your hand." + Fore.RESET)
+                        print(Fore.RED + f"You do not have {card!r} in your hand." + Fore.RESET)
                     except AttributeError:
-                        print(Fore.RED + "Incorrect card type. Please type a card name, e.g. \"7 GREEN\"" + Fore.RESET)
+                        print(Fore.RED + "Incorrect input. Please type a card name, e.g. \"7 GREEN\"" + Fore.RESET)
+                    except IndexError:
+                        if input("No more cards left in deck. Reshuffle? (y/n) ") == 'y' or '':
+                            game.deck.regenerate()
             break

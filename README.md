@@ -7,7 +7,7 @@ It's best to look at the `#TODO` notes inside files.
 No screenshots for now, because the current interface is just temporary.
 
 To-do features:
-[TODO.yml](TODO.md)
+[TODO.md](TODO.md)
 
 #### CLI switches
 - `--debug` or `-D` - always shows the opponent's cards

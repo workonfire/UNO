@@ -1,17 +1,15 @@
 import unittest
+
+import uno.exceptions
 from uno.game import *
 from uno.exceptions import *
 
 
 class UNOTest(unittest.TestCase):
     def test_card(self):
-        """
-        Checks, if we can stack a card on top of another card
-        """
         card: Card = Card(CardType.CARD_PLUS_2, CardColor.YELLOW)
         second_card: Card = Card(CardType.CARD_5, CardColor.RED)
         self.assertEqual(card.playable(second_card), False)
-        print(f"You cannot stack {second_card} on top of {card}")
 
         card = Card(CardType.CARD_PLUS_4, None)
         second_card = Card(CardType.CARD_PLUS_4, None)
@@ -20,6 +18,38 @@ class UNOTest(unittest.TestCase):
         card = Card(CardType.CARD_PLUS_4, None)
         second_card = Card(CardType.CARD_4, CardColor.BLUE)
         self.assertEqual(card.playable(second_card), True)
+
+        card = Card(CardType.CARD_6, CardColor.GREEN)
+        second_card = Card(CardType.CARD_WILDCARD, None)
+        self.assertEqual(second_card.playable(card), True)
+
+        card = Card(None, CardColor.GREEN)
+        second_card = Card(CardType.CARD_WILDCARD, None)
+        self.assertEqual(second_card.playable(card), True)
+
+        card = Card(CardType.CARD_WILDCARD, None)
+        second_card = Card(CardType.CARD_7, CardColor.GREEN)
+        self.assertEqual(second_card.playable(card), False)
+
+        card = Card(None, CardColor.GREEN)
+        second_card = Card(CardType.CARD_7, CardColor.YELLOW)
+        self.assertEqual(second_card.playable(card), False)
+
+    def test_card_creation(self):
+        self.assertEqual(Card(CardType.CARD_6, CardColor.RED).__str__(), "6 RED")
+        self.assertEqual(Card(CardType.CARD_WILDCARD, None).__str__(), "WILDCARD")
+        self.assertEqual(Card(CardType.CARD_PLUS_4, CardColor.GREEN).__str__(), "+4")
+        self.assertEqual(Card(None, CardColor.GREEN).__str__(), "* GREEN")
+        with self.assertRaises(uno.exceptions.InvalidCardException):
+            self.assertEqual(Card(None, None).__str__(), "* GREEN")
+
+    def test_card_from_str(self):
+        self.assertEqual(Card.from_str('6 BLUE'), Card(CardType.CARD_6, CardColor.BLUE))
+        self.assertEqual(Card.from_str('69 GREEN'), None)
+        self.assertEqual(Card.from_str('hello'), None)
+        self.assertEqual(Card.from_str('3 HELLOW'), None)
+        self.assertEqual(Card.from_str('WILDCARD'), Card(CardType.CARD_WILDCARD, None))
+        self.assertEqual(Card.from_str('+4'), Card(CardType.CARD_PLUS_4, None))
 
     def test_wildcard(self):
         for _ in range(50):
@@ -33,14 +63,17 @@ class UNOTest(unittest.TestCase):
         not_wildcard: Card = Card(CardType.CARD_4, CardColor.RED)
         self.assertEqual(not_wildcard.is_wild, False)
 
+        self.assertEqual(Card(CardType.CARD_WILDCARD, None), Card(CardType.CARD_WILDCARD, None))
+        self.assertEqual(
+            Card(CardType.CARD_6, None).is_wild,
+            Card(CardType.CARD_WILDCARD, None) in (CardType.CARD_WILDCARD, CardType.CARD_PLUS_4)
+        )
+
     def test_drawing(self):  # TODO
         with self.assertRaises(NotImplementedError):
             raise NotImplementedError
 
     def test_deck(self):
-        """
-        Tries to draw some cards from a deck
-        """
         deck: Deck = Deck(50)
         print(f"Current deck contents: {deck.stack}")
         print("Trying to draw 10 cards...")
@@ -52,9 +85,6 @@ class UNOTest(unittest.TestCase):
             deck.draw(100)
 
     def test_player(self):
-        """
-        Tries to create a player etc.
-        """
         player: Player = Player()
         self.assertEqual(player.name, None)
         self.assertEqual(player.hand, [], "The player's hand is empty.")
@@ -70,10 +100,6 @@ class UNOTest(unittest.TestCase):
         print(player.hand)
 
     def test_table(self):
-        """
-        Actual game mechanics tests
-        """
-
         # Creating a table
         players: List[Player] = [Player("Human"), Player("Computer")]
         rules: Dict[str, Any] = {'card_stacking': False,
@@ -101,9 +127,6 @@ class UNOTest(unittest.TestCase):
         self.assertEqual(type(table.turn), Player)
 
     def test_queue_order_starting_with_human(self):
-        """
-        Checks if the queue order is correct
-        """
         table: Table = Table(
             [Player("Human"), Player("Computer")],
             {'card_stacking': False,
