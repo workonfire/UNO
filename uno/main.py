@@ -36,7 +36,6 @@ def main():
         if i == 2:
             print(Fore.RED + "More than two players are not supported for now." + Fore.RESET)  # TODO
             break
-    deck_size: int = int(input("Deck size: "))
     while True:
         initial_cards: int = int(input("Initial cards: "))
         if initial_cards > 1:
@@ -44,8 +43,7 @@ def main():
         print(Fore.RED + "The number of initial cards can't be lower than 2." + Fore.RESET)
     card_stacking: bool = input("Card stacking (y/n): ").lower() == 'y' or ''
 
-    rules: Dict[str, Any] = {'deck_size': deck_size,
-                             'initial_cards': initial_cards,
+    rules: Dict[str, Any] = {'initial_cards': initial_cards,
                              'cheats': cheats,
                              'card_stacking': card_stacking}
     game: Game = Game(players, rules)
@@ -59,11 +57,7 @@ def main():
         while True:
             if game.turn.is_computer:
                 computer_turn: TurnWrapper = TurnWrapper(game)
-                try:
-                    card: Card = computer_turn.get_result()
-                except IndexError:
-                    game.deck.regenerate()
-                    card: Card = computer_turn.get_result()
+                card: Card = computer_turn.get_result()
                 print(Fore.BLUE + f"Computer put {card}" + Fore.RESET)
                 game.play(card, game.turn)
                 logging.debug(f"Opponent's cards: {game.opponent.hand}")
@@ -106,7 +100,4 @@ def main():
                         print(Fore.RED + f"You do not have {card!r} in your hand." + Fore.RESET)
                     except AttributeError:
                         print(Fore.RED + "Incorrect input. Please type a card name, e.g. \"7 GREEN\"" + Fore.RESET)
-                    except IndexError:
-                        if input("No more cards left in deck. Reshuffle? (y/n) ") == 'y' or '':
-                            game.deck.regenerate()
             break

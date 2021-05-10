@@ -74,15 +74,12 @@ class UNOTest(unittest.TestCase):
             raise NotImplementedError
 
     def test_deck(self):
-        deck: Deck = Deck(50)
-        print(f"Current deck contents: {deck.stack}")
-        print("Trying to draw 10 cards...")
+        deck: Deck = Deck()
+        old_card: Card = deck.stack
         deck.draw(10)
-        print(f"Current deck contents: {deck.stack}")
-        print("Trying to draw 100 cards...")
-        with self.assertRaises(IndexError):
-            print("Drawing failed successfully.")
-            deck.draw(100)
+        new_card: Card = deck.stack
+        self.assertNotEqual(old_card, new_card)
+        self.assertEqual(len(deck.draw(100)), 100)
 
     def test_player(self):
         player: Player = Player()
@@ -93,7 +90,7 @@ class UNOTest(unittest.TestCase):
         player: Player = Player("Test")
         player.hand = [Card(CardType.CARD_5, CardColor.GREEN), Card(CardType.CARD_6, CardColor.YELLOW)]
         print(player.hand)
-        new_cards: List[Card] = Deck(50).draw(5)
+        new_cards: List[Card] = Deck().draw(5)
         for card in new_cards:
             player.hand.append(card)
         self.assertEqual(len(player.hand), 7)
@@ -103,7 +100,6 @@ class UNOTest(unittest.TestCase):
         # Creating a table
         players: List[Player] = [Player("Human"), Player("Computer")]
         rules: Dict[str, Any] = {'card_stacking': False,
-                                 'deck_size': 50,
                                  'initial_cards': 10}
         table: Table = Table(players, rules)
         print(f"Current players: {table.players}")
@@ -130,7 +126,6 @@ class UNOTest(unittest.TestCase):
         table: Table = Table(
             [Player("Human"), Player("Computer")],
             {'card_stacking': False,
-             'deck_size': 50,
              'initial_cards': 10}
         )
         human_turn_stack: List[str] = [table.turn.name]
@@ -157,7 +152,6 @@ class UNOTest(unittest.TestCase):
         table: Table = Table(
             [Player("Computer"), Player("Human")],
             {'card_stacking': False,
-             'deck_size': 50,
              'initial_cards': 10}
         )
         computer_turn_stack: List[str] = [table.turn.name]
@@ -189,7 +183,6 @@ class UNOTest(unittest.TestCase):
                 Player("Wzium69")
             ],
             {'card_stacking': False,
-             'deck_size': 50,
              'initial_cards': 10}
         )
         turn_stack: List[str] = [table.turn.name]

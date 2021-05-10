@@ -6,16 +6,16 @@ from uno.exceptions import *
 from colorama import Fore
 from shutil import get_terminal_size
 
-from typing import List, Union, Dict, Any
+from typing import List, Union, Dict, Any, Generator, Optional
 
 
 class Card:
-    def __init__(self, card_type: Union[None, CardType], color: Union[None, CardColor]):
-        self.card_type: Union[None, CardType] = card_type
+    def __init__(self, card_type: Optional[CardType], color: Optional[CardColor]):
+        self.card_type: Optional[CardType] = card_type
         self.is_wild: bool = self.card_type in (CardType.CARD_WILDCARD, CardType.CARD_PLUS_4)
-        self.color: Union[None, CardColor] = None if self.is_wild else color
+        self.color: Optional[CardColor] = None if self.is_wild else color
         if self.card_type is None and self.color is None:
-            raise InvalidCardException(f"{self} is an invalid type of card")
+            raise InvalidCardException
 
     def __repr__(self) -> str:
         if self.card_type is None and self.color is not None:
@@ -34,10 +34,10 @@ class Card:
             return NotImplemented
 
     @staticmethod
-    def from_str(value: str) -> Union[None, 'Card']:
+    def from_str(value: str) -> Optional['Card']:
         try:
             card_type, card_color = value.upper().split(' ')
-            card: Union[None, 'Card'] = Card(CardType["CARD_" + card_type.replace('+', 'PLUS_')], CardColor[card_color])
+            card: Optional['Card'] = Card(CardType["CARD_" + card_type.replace('+', 'PLUS_')], CardColor[card_color])
         except ValueError:
             if value.upper() == 'WILDCARD':
                 card = Card(CardType.CARD_WILDCARD, None)
@@ -72,10 +72,6 @@ class Card:
 
 
 class Deck:
-    def __init__(self, size: int):
-        self.initial_size: int = size
-        self.stack: List[Card] = []
-        self.regenerate()
 
     def draw(self, number: int = 1) -> Union[List[Card], Card]:
         """
@@ -83,22 +79,23 @@ class Deck:
         :param number: a number of cards that you want to draw. Default is 1.
         :return: a list of cards, if the amount is greater than 1.
         """
-        if number > len(self.stack):
-            raise IndexError(f"Tried to draw {number} from a deck that has only {len(self.stack)} cards.")
-        return self.stack.pop(-1) if number == 1 else [self.stack.pop(-1) for _ in range(number)]
+        return self.stack if number == 1 else [self.stack for _ in range(number)]
 
-    def regenerate(self):
-        for i in range(self.initial_size):
-            card_type: CardType = random.choice([*CardType])
-            color: CardColor = random.choice([*CardColor])
-            self.stack.append(Card(card_type, color))
-        logging.debug("The deck has been regenerated.")
+    @staticmethod
+    def _stack() -> Generator[Card, None, None]:
+        card_type: CardType = random.choice([*CardType])
+        color: CardColor = random.choice([*CardColor])
+        yield Card(card_type, color)
+
+    @property
+    def stack(self) -> Card:
+        return next(self._stack())
 
 
 class Player:
-    def __init__(self, name: Union[str, None] = None):
+    def __init__(self, name: Optional[str] = None):
         self.hand: List[Card] = []
-        self.name: Union[str, None] = name
+        self.name: Optional[str] = name
         self.is_computer = 'computer' in self.name if self.name is not None else False
 
     def __repr__(self) -> str:
@@ -109,10 +106,9 @@ class Table:
     def __init__(self, players: List[Player], rules: Dict[str, Any]):
         self.rules: Dict[str, Any] = rules
         self.players: List[Player] = players
-        self.deck: Deck = Deck(self.rules['deck_size'])
+        self.deck: Deck = Deck()
         self.stack: List[Card] = [self.deck.draw()]
         while self.stack[0].card_type in (CardType.CARD_PLUS_4, CardType.CARD_PLUS_2, CardType.CARD_WILDCARD):
-            self.deck.regenerate()
             self.stack = [self.deck.draw()]
         for player in players:
             player.hand = self.deck.draw(self.rules['initial_cards'])
@@ -141,24 +137,16 @@ class Table:
                     print(f"{self.turn.name} changed the color to {new_color}")
                 else:
                     # TODO: Language file
-                    new_color: CardColor = CardColor[input("Please input a new card color: ").upper()]
+                    new_color = CardColor[input("Please input a new card color: ").upper()]
                 if card.card_type == CardType.CARD_PLUS_4:
-                    try:
-                        new_cards: List[Card] = self.deck.draw(4)
-                    except IndexError:
-                        self.deck.regenerate()
-                        new_cards: List[Card] = self.deck.draw(4)
+                    new_cards: List[Card] = self.deck.draw(4)
                     for new_card in new_cards:
                         self.opponent.hand.append(new_card)
                 self.stack[0] = Card(None, new_color)
                 logging.debug(f"Card on stack: {self.stack[0]}")
             else:
                 if card.card_type == CardType.CARD_PLUS_2:  # TODO: Queue +2 and +4 stacking
-                    try:
-                        new_cards: List[Card] = self.deck.draw(2)
-                    except IndexError:
-                        self.deck.regenerate()
-                        new_cards: List[Card] = self.deck.draw(2)
+                    new_cards = self.deck.draw(2)
                     for new_card in new_cards:
                         self.opponent.hand.append(new_card)
 
@@ -218,7 +206,7 @@ class Game(Table):
             raise RuntimeError("The game is already inactive.")
         self.active: bool = False
 
-    def get_winner(self) -> Union[Player, None]:
+    def get_winner(self) -> Optional[Player]:
         """
         Checks if somebody has won the game.
         """
@@ -254,7 +242,7 @@ class TurnWrapper:
 
     @property
     def most_reasonable_color(self) -> CardColor:
-        card_colors: List[CardColor] = [card.color for card in self.playable_cards]
+        card_colors: List[Optional[CardColor]] = [card.color for card in self.playable_cards]
         if not card_colors or set(card_colors) == {None}:
             return random.choice([*CardColor])
         return max(set(card_colors), key=card_colors.count)

@@ -49,8 +49,7 @@ if len(player.hand) == 0:
 ```python
 players: List[Player] = [Player('Wzium'), Player('Computer')]
 # Custom rules (W.I.P.)
-rules: Dict[str, Any] = {'deck_size': 50,
-                         'initial_cards': 7,
+rules: Dict[str, Any] = {'initial_cards': 7,
                          'cheats': False,
                          'card_stacking': True}
 
