@@ -20,7 +20,7 @@ def main():
 
     logging.basicConfig(stream=sys.stdout,
                         level=logging.DEBUG if debug else logging.INFO,
-                        format=f'{Fore.BLUE}%(levelname)s: %(message)s{Fore.RESET}')
+                        format=f'{Fore.LIGHTBLACK_EX}%(levelname)s: %(message)s{Fore.RESET}')
 
     players: List[Player] = []
     print("Please type the player names.")
@@ -41,7 +41,7 @@ def main():
         if initial_cards > 1:
             break
         print(Fore.RED + "The number of initial cards can't be lower than 2." + Fore.RESET)
-    card_stacking: bool = input("Card stacking (y/n): ").lower() == 'y' or ''
+    card_stacking: bool = input("Card stacking (Y/n): ").lower() == 'y' or ''
 
     rules: Dict[str, Any] = {'initial_cards': initial_cards,
                              'cheats': cheats,
@@ -58,14 +58,14 @@ def main():
             if game.turn.is_computer:
                 computer_turn: TurnWrapper = TurnWrapper(game)
                 card: Card = computer_turn.get_result()
-                print(Fore.BLUE + f"Computer put {card}" + Fore.RESET)
+                print(f"Computer put {card}")
                 game.play(card, game.turn)
-                logging.debug(f"Opponent's cards: {game.opponent.hand}")
+                logging.debug(f"Opponent's cards: {game.opponent.format_hand_contents()}")
                 print(f"Opponent's remaining cards: {len(game.opponent.hand)}")
             else:
-                print(f"Your cards: {game.turn.hand}")
+                print(f"Your cards: {game.turn.format_hand_contents()}")
                 # game.last_played_card.display()
-                print(Fore.LIGHTMAGENTA_EX + f"Current card: {game.last_played_card}", Fore.RESET)
+                print(f"Current card: {game.last_played_card}")
                 card_input: str = input("Card (e.g. 4 BLUE, Enter to draw): ")
                 if game.rules['cheats']:
                     try:

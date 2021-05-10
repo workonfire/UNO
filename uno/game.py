@@ -25,7 +25,8 @@ class Card:
         return card_type_name if self.is_wild and self.color is None else f'{card_type_name} {self.color.name}'
 
     def __str__(self) -> str:
-        return self.__repr__()
+        color: Fore = getattr(Fore, self.color.name) if self.color is not None else Fore.WHITE
+        return color + self.__repr__() + Fore.RESET
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Card):
@@ -97,6 +98,9 @@ class Player:
         self.hand: List[Card] = []
         self.name: Optional[str] = name
         self.is_computer = 'computer' in self.name if self.name is not None else False
+
+    def format_hand_contents(self) -> str:
+        return ', '.join([card.__str__() for card in self.hand])
 
     def __repr__(self) -> str:
         return f'{self.name}: ' + ', '.join([str(self.hand)])

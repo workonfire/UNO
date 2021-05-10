@@ -36,12 +36,12 @@ class UNOTest(unittest.TestCase):
         self.assertEqual(second_card.playable(card), False)
 
     def test_card_creation(self):
-        self.assertEqual(Card(CardType.CARD_6, CardColor.RED).__str__(), "6 RED")
-        self.assertEqual(Card(CardType.CARD_WILDCARD, None).__str__(), "WILDCARD")
-        self.assertEqual(Card(CardType.CARD_PLUS_4, CardColor.GREEN).__str__(), "+4")
-        self.assertEqual(Card(None, CardColor.GREEN).__str__(), "* GREEN")
+        self.assertEqual(Card(CardType.CARD_6, CardColor.RED).__repr__(), "6 RED")
+        self.assertEqual(Card(CardType.CARD_WILDCARD, None).__repr__(), "WILDCARD")
+        self.assertEqual(Card(CardType.CARD_PLUS_4, CardColor.GREEN).__repr__(), "+4")
+        self.assertEqual(Card(None, CardColor.GREEN).__repr__(), "* GREEN")
         with self.assertRaises(uno.exceptions.InvalidCardException):
-            self.assertEqual(Card(None, None).__str__(), "* GREEN")
+            self.assertEqual(Card(None, None).__repr__(), "* GREEN")
 
     def test_card_from_str(self):
         self.assertEqual(Card.from_str('6 BLUE'), Card(CardType.CARD_6, CardColor.BLUE))
