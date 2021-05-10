@@ -10,6 +10,7 @@ setup(
     author_email='kolucki62@gmail.com',
     url='https://workonfi.re/',
     packages=find_packages(exclude='tests'),
+    test_suite="tests",
     entry_points={
         'console_scripts': [
             'uno = uno.main:main'

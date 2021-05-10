@@ -5,7 +5,7 @@ mypy_test:
 	mypy uno
 
 test:
-	python -m unittest discover tests
+	python -m unittest discover uno/tests
 
 dist:
 	python setup.py sdist
@@ -14,5 +14,7 @@ install:
 	pip install .
 
 archlinux_dist:
-	makepkg -s
+	makepkg -s # Don't do it inside venv!
 
+benchmark:
+	time echo -e "computer_1\ncomputer_2\n1000\ny\n" | python -m uno --debug --cheats
