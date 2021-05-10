@@ -41,7 +41,7 @@ def main():
         if initial_cards > 1:
             break
         print(Fore.RED + "The number of initial cards can't be lower than 2." + Fore.RESET)
-    card_stacking: bool = input("Card stacking (Y/n): ").lower() == 'y' or ''
+    card_stacking: bool = input("Card stacking (Y/n): ").lower() in ('y', '')
 
     rules: Dict[str, Any] = {'initial_cards': initial_cards,
                              'cheats': cheats,
