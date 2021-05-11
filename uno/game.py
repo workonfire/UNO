@@ -141,7 +141,12 @@ class Table:
                     print(f"{self.turn.name} changed the color to {new_color}")
                 else:
                     # TODO: Language file
-                    new_color = CardColor[input("Please input a new card color: ").upper()]
+                    while True:
+                        try:
+                            new_color = CardColor[input("New card color: ").upper()]
+                            break
+                        except KeyError:
+                            print(Fore.RED + "Incorrect input. Please type a card color, e.g. \"GREEN\"" + Fore.RESET)
                 if card.card_type == CardType.CARD_PLUS_4:
                     new_cards: List[Card] = self.deck.draw(4)
                     for new_card in new_cards:

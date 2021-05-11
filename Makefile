@@ -18,3 +18,6 @@ archlinux_dist:
 
 benchmark:
 	time echo -e "computer_1\ncomputer_2\n1000\ny\n" | python -m uno --debug --cheats
+
+benchmark_slow:
+	time echo -e "computer_1\ncomputer_2\n5000\ny\n" | python -m uno --debug --cheats

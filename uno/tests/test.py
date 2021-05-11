@@ -75,16 +75,13 @@ class UNOTest(unittest.TestCase):
 
     def test_deck(self):
         deck: Deck = Deck()
-        old_card: Card = deck.stack
         deck.draw(10)
-        new_card: Card = deck.stack
-        self.assertNotEqual(old_card, new_card)
         self.assertEqual(len(deck.draw(100)), 100)
 
     def test_player(self):
         player: Player = Player()
         self.assertEqual(player.name, None)
-        self.assertEqual(player.hand, [], "The player's hand is empty.")
+        self.assertEqual(player.hand, [])
 
     def test_player_deal(self):
         player: Player = Player("Test")
