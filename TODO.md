@@ -21,6 +21,7 @@ What to implement:
 - Auto-save system
 - Aliases like `4B`, `*` and auto-correction like `4lbue` -> `4 BLUE`
 - Remove the infinite deck system... there is a FINITE amount of +4's, +2's etc...
-  
+- Discord Rich Presence integration
+
 Developer notes:
 - Optimize `list()/[*]` and `set()`
