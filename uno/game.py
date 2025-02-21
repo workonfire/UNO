@@ -6,7 +6,7 @@ from uno.exceptions import *
 from colorama import Fore
 from shutil import get_terminal_size
 
-from typing import List, Union, Dict, Any, Generator, Optional
+from typing import Any, Generator, Optional
 
 
 class Card:
@@ -67,6 +67,8 @@ class Card:
         :param centered: whether to center the card on the display, or not
         """
         card_to_display: str = CardVisual(self).art
+        # TODO: Card visuals
+        # card_to_display: str = ''.join(CardVisual.get_card_visual('>', self.card_type.value))
         if centered:
             card_to_display = card_to_display.center(get_terminal_size().columns)
         print(getattr(Fore, self.color.name) + card_to_display + Fore.RESET)
@@ -74,12 +76,13 @@ class Card:
 
 class Deck:
 
-    def draw(self, number: int = 1) -> Union[List[Card], Card]:
+    def draw(self, number: int = 1) -> list[Card] | Card:
         """
         Draws a specified amount of cards.
         :param number: a number of cards that you want to draw. Default is 1.
         :return: a list of cards, if the amount is greater than 1.
         """
+        # TODO: Just return a list and expect a list in a parent function
         return self.stack if number == 1 else [self.stack for _ in range(number)]
 
     @staticmethod
@@ -94,10 +97,10 @@ class Deck:
 
 
 class Player:
-    def __init__(self, name: Optional[str] = None):
-        self.hand: List[Card] = []
-        self.name: Optional[str] = name
-        self.is_computer = 'computer' in self.name if self.name is not None else False
+    def __init__(self, name: str = ''):
+        self.hand: list[Card] = []
+        self.name: str = name
+        self.is_computer: bool = 'computer' in self.name if self.name is not None else False
 
     def format_hand_contents(self) -> str:
         return ', '.join([card.__str__() for card in self.hand])
@@ -107,11 +110,11 @@ class Player:
 
 
 class Table:
-    def __init__(self, players: List[Player], rules: Dict[str, Any]):
-        self.rules: Dict[str, Any] = rules
-        self.players: List[Player] = players
+    def __init__(self, players: list[Player], rules: dict[str, Any]):
+        self.rules: dict[str, Any] = rules
+        self.players: list[Player] = players
         self.deck: Deck = Deck()
-        self.stack: List[Card] = [self.deck.draw()]
+        self.stack: list[Card] = [self.deck.draw()]
         while self.stack[0].card_type in (CardType.CARD_PLUS_4, CardType.CARD_PLUS_2, CardType.CARD_WILDCARD):
             self.stack = [self.deck.draw()]
         for player in players:
@@ -148,7 +151,7 @@ class Table:
                         except KeyError:
                             print(Fore.RED + "Incorrect input. Please type a card color, e.g. \"GREEN\"" + Fore.RESET)
                 if card.card_type == CardType.CARD_PLUS_4:
-                    new_cards: List[Card] = self.deck.draw(4)
+                    new_cards: list[Card] = self.deck.draw(4)
                     for new_card in new_cards:
                         self.opponent.hand.append(new_card)
                 self.stack[0] = Card(None, new_color)
@@ -163,6 +166,7 @@ class Table:
                     for playable_card in TurnWrapper(self).playable_cards:
                         if not playable_card.is_wild and playable_card.card_type == self.last_played_card.card_type:
                             self.play(playable_card, player, stacking=True)
+                            # TODO: +2 and/or +4 stacking
                             print(f"Took out {playable_card}")
 
             if card.card_type not in (CardType.CARD_SKIP, CardType.CARD_REVERSE) and not stacking:
@@ -174,7 +178,7 @@ class Table:
         """
         Gives the player a card from the deck.
         """
-        cards: Union[List[Card], Card] = self.deck.draw(amount)
+        cards: list[Card] | Card = self.deck.draw(amount)
         if amount > 1:
             for card in cards:
                 player.hand.append(card)
@@ -200,10 +204,10 @@ class Table:
 
 
 class Game(Table):
-    def __init__(self, players: List[Player], rules: Dict[str, Any]):
+    def __init__(self, players: list[Player], rules: dict[str, Any]):
         super().__init__(players, rules)
         self.active: bool = True
-        self.winner: Union[None, Player] = None
+        self.winner: Player | None = None
         while self.last_played_card.is_wild:
             self.stack.insert(0, self.deck.draw())
 
@@ -239,11 +243,11 @@ class TurnWrapper:
     def __init__(self, table: Table):
         self.table: Table = table
         self.last_card: Card = self.table.last_played_card
-        self.hand: List[Card] = self.table.turn.hand
+        self.hand: list[Card] = self.table.turn.hand
 
     @property
-    def playable_cards(self) -> List[Card]:
-        playable_cards: List[Card] = []
+    def playable_cards(self) -> list[Card]:
+        playable_cards: list[Card] = []
         for card in self.hand:
             if card.playable(self.last_card):
                 playable_cards.append(card)
@@ -251,7 +255,7 @@ class TurnWrapper:
 
     @property
     def most_reasonable_color(self) -> CardColor:
-        card_colors: List[Optional[CardColor]] = [card.color for card in self.playable_cards]
+        card_colors: list[Optional[CardColor]] = [card.color for card in self.playable_cards]
         if not card_colors or set(card_colors) == {None}:
             return random.choice([*CardColor])
         return max(set(card_colors), key=card_colors.count)

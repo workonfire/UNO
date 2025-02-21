@@ -1,15 +1,17 @@
 import sys
+import time
 
 from uno.game import *
 import argparse
 import traceback
 from colorama import Fore  # TODO: Color support on Windows
 
-__VERSION__: str = 'ALPHA'
+__VERSION__: str = 'ALPHA-2025-02-04'
 
 
 def main():
-    print(f"{Fore.RED}U{Fore.GREEN}N{Fore.BLUE}O{Fore.RESET} {__VERSION__}")
+    print(f"{Fore.RED}U{Fore.GREEN}N{Fore.BLUE}O{Fore.RESET} | version {__VERSION__}")
+    print("---")
     argparser: argparse.ArgumentParser = argparse.ArgumentParser()
     argparser.add_argument('-C', '--cheats', action='store_true')
     argparser.add_argument('-D', '--debug', action='store_true')
@@ -22,10 +24,10 @@ def main():
                         level=logging.DEBUG if debug else logging.INFO,
                         format=f'{Fore.LIGHTBLACK_EX}%(levelname)s: %(message)s{Fore.RESET}')
 
-    players: List[Player] = []
-    print("Please type the player names.")
-    print("Hint: type \"computer\" to play with the computer.")
-    for i in range(1, 10):
+    players: list[Player] = []
+    print("Please enter the player names.")
+    print("Hint: type \"computer\" to play with the computer.\n")
+    for i in range(1, 10): # TODO: A proper queue system
         while True:
             player_name: str = input(f"Player {i}: ").lower()
             if player_name in [player.name for player in players]:
@@ -34,16 +36,16 @@ def main():
                 break
         players.append(Player(player_name))
         if i == 2:
-            print(Fore.RED + "More than two players are not supported for now." + Fore.RESET)  # TODO
+            print(Fore.RED + "Playing with more than two players is currently not supported." + Fore.RESET)  # TODO
             break
     while True:
-        initial_cards: int = int(input("Initial cards: "))
+        initial_cards: int = int(input("Cards to begin with: "))
         if initial_cards > 1:
             break
-        print(Fore.RED + "The number of initial cards can't be lower than 2." + Fore.RESET)
+        print(Fore.RED + "The number of the card can't be lower than 2." + Fore.RESET)
     card_stacking: bool = input("Card stacking (Y/n): ").lower() in ('y', '')
 
-    rules: Dict[str, Any] = {'initial_cards': initial_cards,
+    rules: dict[str, Any] = {'initial_cards': initial_cards,
                              'cheats': cheats,
                              'card_stacking': card_stacking}
     game: Game = Game(players, rules)
@@ -53,19 +55,28 @@ def main():
             game.win(game.get_winner())
             print(Fore.GREEN + f"Winner: {game.winner.name}" + Fore.RESET)
             break
-        print(f"\nTurn: {game.turn.name}")
+        print(f"\n- Turn: {game.turn.name}")
         while True:
             if game.turn.is_computer:
                 computer_turn: TurnWrapper = TurnWrapper(game)
                 card: Card = computer_turn.get_result()
-                print(f"Computer put {card}")
+                if not game.turn.is_computer or not game.opponent.is_computer:
+                    time.sleep(0.5)
+                print(f"-> Computer put {card}")
                 game.play(card, game.turn)
-                logging.debug(f"Opponent's cards: {game.opponent.format_hand_contents()}")
-                print(f"Opponent's remaining cards: {len(game.opponent.hand)}")
+                logging.debug(f"-  Opponent's cards: {game.opponent.format_hand_contents()}")
+                print(f"-- Opponent's remaining cards: {len(game.opponent.hand)}")
             else:
-                print(f"Your cards: {game.turn.format_hand_contents()}")
+                if not game.turn.is_computer or not game.opponent.is_computer:
+                    time.sleep(0.25)
+                # TODO: Convert all colors to `colorama`
+                print(f"\n   [\033[36;40;1m -> Current card: {game.last_played_card} \033[36;40;1m<- \033[0m]\n")
+                # TODO: Create card visuals
+                # game.last_played_card.display(centered=True)
+                if not game.turn.is_computer or not game.opponent.is_computer:
+                    time.sleep(0.25)
+                print(f"-- Your cards: {game.turn.format_hand_contents()}")
                 # game.last_played_card.display()
-                print(f"Current card: {game.last_played_card}")
                 card_input: str = input("Card (e.g. 4 BLUE, Enter to draw): ")
                 if game.rules['cheats']:
                     try:
@@ -85,7 +96,7 @@ def main():
                     except IndexError:
                         print(Fore.RED + "Can't draw more cards." + Fore.RESET)
                 elif card_input == 'PASS':
-                    print("You passed.")
+                    print("You passed the turn.")
                     game.next_turn()
                 else:
                     if card_input in ('WILDCARD', '+4'):
@@ -99,5 +110,5 @@ def main():
                     except CardNotInPossessionError:
                         print(Fore.RED + f"You do not have {card!r} in your hand." + Fore.RESET)
                     except AttributeError:
-                        print(Fore.RED + "Incorrect input. Please type a card name, e.g. \"7 GREEN\"" + Fore.RESET)
+                        print(Fore.RED + "Incorrect input. Please enter a card name, e.g. \"7 GREEN\"" + Fore.RESET)
             break

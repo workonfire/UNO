@@ -80,14 +80,14 @@ class UNOTest(unittest.TestCase):
 
     def test_player(self):
         player: Player = Player()
-        self.assertEqual(player.name, None)
+        self.assertEqual(player.name, '')
         self.assertEqual(player.hand, [])
 
     def test_player_deal(self):
         player: Player = Player("Test")
         player.hand = [Card(CardType.CARD_5, CardColor.GREEN), Card(CardType.CARD_6, CardColor.YELLOW)]
         print(player.hand)
-        new_cards: List[Card] = Deck().draw(5)
+        new_cards: list[Card] = Deck().draw(5)
         for card in new_cards:
             player.hand.append(card)
         self.assertEqual(len(player.hand), 7)
@@ -95,8 +95,8 @@ class UNOTest(unittest.TestCase):
 
     def test_table(self):
         # Creating a table
-        players: List[Player] = [Player("Human"), Player("Computer")]
-        rules: Dict[str, Any] = {'card_stacking': False,
+        players: list[Player] = [Player("Human"), Player("Computer")]
+        rules: list[str, Any] = {'card_stacking': False,
                                  'initial_cards': 10}
         table: Table = Table(players, rules)
         print(f"Current players: {table.players}")
@@ -125,7 +125,7 @@ class UNOTest(unittest.TestCase):
             {'card_stacking': False,
              'initial_cards': 10}
         )
-        human_turn_stack: List[str] = [table.turn.name]
+        human_turn_stack: list[str] = [table.turn.name]
         for i in range(10):
             # print(f"Current turn: {table.turn.name}. Next turn...")
             table.next_turn()
@@ -151,7 +151,7 @@ class UNOTest(unittest.TestCase):
             {'card_stacking': False,
              'initial_cards': 10}
         )
-        computer_turn_stack: List[str] = [table.turn.name]
+        computer_turn_stack: list[str] = [table.turn.name]
         for i in range(10):
             # print(f"Current turn: {table.turn.name}. Next turn...")
             table.next_turn()
@@ -182,7 +182,7 @@ class UNOTest(unittest.TestCase):
             {'card_stacking': False,
              'initial_cards': 10}
         )
-        turn_stack: List[str] = [table.turn.name]
+        turn_stack: list[str] = [table.turn.name]
         for i in range(10):
             # print(f"Current turn: {table.turn.name}. Next turn...")
             if i == 5:
