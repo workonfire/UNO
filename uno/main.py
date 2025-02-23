@@ -4,13 +4,14 @@ import time
 from uno.game import *
 import argparse
 import traceback
-from colorama import Fore  # TODO: Color support on Windows
+from colorama import Fore # TODO: Remove colorama dependency and fix colors on Windows
+# TODO: https://pypi.org/project/rich/
 
-__VERSION__: str = 'ALPHA-2025-02-04'
+__VERSION__: str = 'ALPHA-2025-02-23'
 
 
 def main():
-    print(f"{Fore.RED}U{Fore.GREEN}N{Fore.BLUE}O{Fore.RESET} | version {__VERSION__}")
+    print(f"{Fore.LIGHTRED_EX}U{Fore.LIGHTGREEN_EX}N{Fore.LIGHTBLUE_EX}O{Fore.RESET} | version {__VERSION__}")
     print("---")
     argparser: argparse.ArgumentParser = argparse.ArgumentParser()
     argparser.add_argument('-C', '--cheats', action='store_true')
@@ -39,11 +40,11 @@ def main():
             print(Fore.RED + "Playing with more than two players is currently not supported." + Fore.RESET)  # TODO
             break
     while True:
-        initial_cards: int = int(input("Cards to begin with: "))
+        initial_cards: int = int(input("Starting cards: "))
         if initial_cards > 1:
             break
-        print(Fore.RED + "The number of the card can't be lower than 2." + Fore.RESET)
-    card_stacking: bool = input("Card stacking (Y/n): ").lower() in ('y', '')
+        print(Fore.RED + "The number can't be lower than 2." + Fore.RESET)
+    card_stacking: bool = input("Similar card stacking (Y/n): ").lower() in ('y', '')
 
     rules: dict[str, Any] = {'initial_cards': initial_cards,
                              'cheats': cheats,
@@ -53,7 +54,7 @@ def main():
     while game.active:
         if game.get_winner() is not None:
             game.win(game.get_winner())
-            print(Fore.GREEN + f"Winner: {game.winner.name}" + Fore.RESET)
+            print("> " + Fore.GREEN + f"Winner: {game.winner.name}" + Fore.RESET)
             break
         print(f"\n- Turn: {game.turn.name}")
         while True:
@@ -75,9 +76,9 @@ def main():
                 # game.last_played_card.display(centered=True)
                 if not game.turn.is_computer or not game.opponent.is_computer:
                     time.sleep(0.25)
-                print(f"-- Your cards: {game.turn.format_hand_contents()}")
+                print(f"-- Your cards: {game.turn.format_hand_contents()}\n")
                 # game.last_played_card.display()
-                card_input: str = input("Card (e.g. 4 BLUE, Enter to draw): ")
+                card_input: str = input(f"Card ({Fore.LIGHTCYAN_EX}Enter{Fore.LIGHTWHITE_EX} to draw) >{Fore.RESET} ")
                 if game.rules['cheats']:
                     try:
                         cheat_code: str = card_input.split('#')[1]
@@ -95,7 +96,7 @@ def main():
                         game.deal_card(game.turn)
                     except IndexError:
                         print(Fore.RED + "Can't draw more cards." + Fore.RESET)
-                elif card_input == 'PASS':
+                elif card_input == 'PASS': # TODO: Make it depend on game rules
                     print("You passed the turn.")
                     game.next_turn()
                 else:

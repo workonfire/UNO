@@ -5,9 +5,9 @@ from uno.enums import *
 from uno.exceptions import *
 from colorama import Fore
 from shutil import get_terminal_size
+from time import sleep
 
 from typing import Any, Generator, Optional
-
 
 class Card:
     def __init__(self, card_type: Optional[CardType], color: Optional[CardColor]):
@@ -75,7 +75,6 @@ class Card:
 
 
 class Deck:
-
     def draw(self, number: int = 1) -> list[Card] | Card:
         """
         Draws a specified amount of cards.
@@ -167,7 +166,9 @@ class Table:
                         if not playable_card.is_wild and playable_card.card_type == self.last_played_card.card_type:
                             self.play(playable_card, player, stacking=True)
                             # TODO: +2 and/or +4 stacking
-                            print(f"Took out {playable_card}")
+                            if not self.turn.is_computer:
+                                sleep(0.2)
+                            print(f"Stacking {playable_card}...")
 
             if card.card_type not in (CardType.CARD_SKIP, CardType.CARD_REVERSE) and not stacking:
                 self.next_turn()
