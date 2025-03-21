@@ -1,13 +1,16 @@
 import logging
 import random
 
+from rich.console import Console
+
 from uno.enums import *
 from uno.exceptions import *
-from colorama import Fore
 from shutil import get_terminal_size
 from time import sleep
 
 from typing import Any, Generator, Optional
+
+console = Console(color_system='standard')
 
 class Card:
     def __init__(self, card_type: Optional[CardType], color: Optional[CardColor]):
@@ -25,8 +28,8 @@ class Card:
         return card_type_name if self.is_wild and self.color is None else f'{card_type_name} {self.color.name}'
 
     def __str__(self) -> str:
-        color: Fore = getattr(Fore, self.color.name) if self.color is not None else Fore.WHITE
-        return color + self.__repr__() + Fore.RESET
+        color: str = f'[bright_{self.color.name.lower()}]' if self.color is not None else '[bright_white]'
+        return color + self.__repr__() + '[bright_white]'
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Card):
@@ -71,7 +74,7 @@ class Card:
         # card_to_display: str = ''.join(CardVisual.get_card_visual('>', self.card_type.value))
         if centered:
             card_to_display = card_to_display.center(get_terminal_size().columns)
-        print(getattr(Fore, self.color.name) + card_to_display + Fore.RESET)
+        console.print(f'[bright_{self.color.name.lower()}]' + card_to_display + '[bright_white]')
 
 
 class Deck:
@@ -140,15 +143,15 @@ class Table:
             if card.is_wild:
                 if self.turn.is_computer:
                     new_color: CardColor = TurnWrapper(self).most_reasonable_color
-                    print(f"{self.turn.name} changed the color to {new_color}")
+                    console.print(f"{self.turn.name} changed the color to [bright_{new_color.name.lower()}]{new_color}[bright_white]")
                 else:
                     # TODO: Language file
                     while True:
                         try:
                             new_color = CardColor[input("New card color: ").upper()]
                             break
-                        except KeyError:
-                            print(Fore.RED + "Incorrect input. Please type a card color, e.g. \"GREEN\"" + Fore.RESET)
+                        except KeyError: # TODO: remove dependency on the Console object
+                            console.print(f"[bright_red]Incorrect input. Please type a card color, e.g. \"GREEN\"[/bright_red]")
                 if card.card_type == CardType.CARD_PLUS_4:
                     new_cards: list[Card] = self.deck.draw(4)
                     for new_card in new_cards:
@@ -168,7 +171,7 @@ class Table:
                             # TODO: +2 and/or +4 stacking
                             if not self.turn.is_computer:
                                 sleep(0.2)
-                            print(f"Stacking {playable_card}...")
+                            console.print(f"Stacking {playable_card}...")
 
             if card.card_type not in (CardType.CARD_SKIP, CardType.CARD_REVERSE) and not stacking:
                 self.next_turn()

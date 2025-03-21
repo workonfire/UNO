@@ -4,6 +4,8 @@ import uno.exceptions
 from uno.game import *
 from uno.exceptions import *
 
+# TODO: Implement `rich`
+
 
 class UNOTest(unittest.TestCase):
     def test_card(self):
@@ -96,7 +98,7 @@ class UNOTest(unittest.TestCase):
     def test_table(self):
         # Creating a table
         players: list[Player] = [Player("Human"), Player("Computer")]
-        rules: list[str, Any] = {'card_stacking': False,
+        rules: dict[str, Any] = {'card_stacking': False,
                                  'initial_cards': 10}
         table: Table = Table(players, rules)
         print(f"Current players: {table.players}")
