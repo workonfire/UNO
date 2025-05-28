@@ -5,7 +5,7 @@ from uno.game import *
 import argparse
 import traceback
 
-__VERSION__: str = 'ALPHA-2025-03-21'
+__VERSION__: str = 'ALPHA-2025-05-28'
 
 # TODO: Define a print_error() function
 # TODO: Check `[bright_white]`
@@ -31,9 +31,10 @@ def main():
                         format='[bright_black]%(levelname)s: %(message)s[/bright_black]')
 
     players: list[Player] = []
+    number_of_players = int(input("Please enter the number of players: ")) # TODO: Checking
     print("Please enter the player names.")
     print("Hint: type \"computer\" to play with the computer.\n")
-    for i in range(1, 10): # TODO: A proper queue system
+    for i in range(1, number_of_players + 1): # TODO: A proper queue system
         while True:
             player_name: str = input(f"Player {i}: ").lower()
             if player_name in [player.name for player in players]:
@@ -41,9 +42,6 @@ def main():
             else:
                 break
         players.append(Player(player_name))
-        if i == 2:
-            console.print("[bright_red]Playing with more than two players is currently not supported.[/bright_red]" )
-            break
     while True:
         initial_cards: int = int(input("Starting cards: "))
         if initial_cards > 1:
@@ -66,14 +64,14 @@ def main():
             if game.turn.is_computer:
                 computer_turn: TurnWrapper = TurnWrapper(game)
                 card: Card = computer_turn.get_result()
-                if not game.turn.is_computer or not game.opponent.is_computer:
+                if not game.turn.is_computer or not game.next_turn.is_computer:
                     time.sleep(0.5)
                 console.print(f"-> Computer put {card}")
                 game.play(card, game.turn)
-                logging.debug(f"-  Opponent's cards: {game.opponent.format_hand_contents()}")
-                print(f"-- Opponent's remaining cards: {len(game.opponent.hand)}")
+                logging.debug(f"-  Opponent's cards: {game.next_turn.format_hand_contents()}")
+                print(f"-- Opponent's remaining cards: {len(game.next_turn.hand)}")
             else:
-                if not game.turn.is_computer or not game.opponent.is_computer:
+                if not game.turn.is_computer or not game.next_turn.is_computer:
                     time.sleep(0.25)
                 console.print(
                     f"\n   [ [bright_cyan]-> [bright_blue]Current card[bright_white]: "
@@ -82,7 +80,7 @@ def main():
                 )
                 # TODO: Create card visuals
                 # game.last_played_card.display(centered=True)
-                if not game.turn.is_computer or not game.opponent.is_computer:
+                if not game.turn.is_computer or not game.next_turn.is_computer:
                     time.sleep(0.25)
                 console.print(f"-- Your cards: {game.turn.format_hand_contents()}\n")
                 # game.last_played_card.display()
@@ -106,7 +104,7 @@ def main():
                         console.print("[bright_red]Can't draw more cards.[/bright_red]")
                 elif card_input == 'PASS': # TODO: Make it depend on game rules
                     print("You passed the turn.")
-                    game.next_turn()
+                    game.set_next_turn()
                 else:
                     if card_input in ('WILDCARD', '+4'):
                         card = Card(CardType["CARD_" + card_input.upper().replace('+', "PLUS_")], None)

@@ -102,7 +102,7 @@ class Player:
     def __init__(self, name: str = ''):
         self.hand: list[Card] = []
         self.name: str = name
-        self.is_computer: bool = 'computer' in self.name if self.name is not None else False
+        self.is_computer: bool = 'computer' in self.name.lower() if self.name is not None else False
 
     def format_hand_contents(self) -> str:
         return ', '.join([card.__str__() for card in self.hand])
@@ -117,15 +117,20 @@ class Table:
         self.players: list[Player] = players
         self.deck: Deck = Deck()
         self.stack: list[Card] = [self.deck.draw()]
+        self.turn_index: int = 0
+        self.direction: int = 1
         while self.stack[0].card_type in (CardType.CARD_PLUS_4, CardType.CARD_PLUS_2, CardType.CARD_WILDCARD):
             self.stack = [self.deck.draw()]
         for player in players:
             player.hand = self.deck.draw(self.rules['initial_cards'])
-        self.turn: Player = self.players[0]
 
     @property
     def last_played_card(self) -> Card:
         return self.stack[0]
+
+    @property
+    def turn(self) -> Player:
+        return self.players[self.turn_index]
 
     def play(self, card: Card, player: Player, stacking: bool = False):
         """
@@ -143,7 +148,8 @@ class Table:
             if card.is_wild:
                 if self.turn.is_computer:
                     new_color: CardColor = TurnWrapper(self).most_reasonable_color
-                    console.print(f"{self.turn.name} changed the color to [bright_{new_color.name.lower()}]{new_color}[bright_white]")
+                    console.print(
+                        f"{self.turn.name} changed the color to [bright_{new_color.name.lower()}]{new_color}[bright_white]")
                 else:
                     # TODO: Language file
                     while True:
@@ -151,20 +157,20 @@ class Table:
                             new_color = CardColor[input("New card color: ").upper()]
                             break
                         except KeyError: # TODO: remove dependency on the Console object
-                            console.print(f"[bright_red]Incorrect input. Please type a card color, e.g. \"GREEN\"[/bright_red]")
+                            console.print(
+                                "[bright_red]Incorrect input. Please type a card color, e.g. \"GREEN\"[/bright_red]")
                 if card.card_type == CardType.CARD_PLUS_4:
+                    next_player: Player = self.players[(self.turn_index + self.direction) % len(self.players)]
                     new_cards: list[Card] = self.deck.draw(4)
-                    for new_card in new_cards:
-                        self.opponent.hand.append(new_card)
+                    next_player.hand.extend(new_cards)
                 self.stack[0] = Card(None, new_color)
                 logging.debug(f"Card on stack: {self.stack[0]}")
             else:
                 if card.card_type == CardType.CARD_PLUS_2:  # TODO: Queue +2 and +4 stacking
+                    next_player = self.players[(self.turn_index + self.direction) % len(self.players)]
                     new_cards = self.deck.draw(2)
-                    for new_card in new_cards:
-                        self.opponent.hand.append(new_card)
-
-                if self.rules['card_stacking'] and not stacking:
+                    next_player.hand.extend(new_cards)
+                if self.rules.get('card_stacking') and not stacking:
                     for playable_card in TurnWrapper(self).playable_cards:
                         if not playable_card.is_wild and playable_card.card_type == self.last_played_card.card_type:
                             self.play(playable_card, player, stacking=True)
@@ -172,9 +178,14 @@ class Table:
                             if not self.turn.is_computer:
                                 sleep(0.2)
                             console.print(f"Stacking {playable_card}...")
-
-            if card.card_type not in (CardType.CARD_SKIP, CardType.CARD_REVERSE) and not stacking:
-                self.next_turn()
+            if not stacking:
+                if card.card_type == CardType.CARD_SKIP:
+                    self.skip_next_player()
+                elif card.card_type == CardType.CARD_REVERSE:
+                    self.reverse_queue()
+                    self.set_next_turn()
+                else:
+                    self.set_next_turn()
         else:
             raise CardNotPlayableError(f"The player {player} cannot play with {card}.")
 
@@ -182,30 +193,25 @@ class Table:
         """
         Gives the player a card from the deck.
         """
-        cards: list[Card] | Card = self.deck.draw(amount)
-        if amount > 1:
-            for card in cards:
-                player.hand.append(card)
+        cards = self.deck.draw(amount)
+        if isinstance(cards, list):
+            player.hand.extend(cards)
         else:
             player.hand.append(cards)
 
     @property
-    def opponent(self) -> Player:
-        """
-        I know, it's ugly. I haven't figured out a queue system yet, since this is just a 1v1 game.
-        """
-        return self.players[0] if self.turn == self.players[1] else self.players[1]
+    def next_turn(self) -> Player:
+        return self.players[(self.turn_index + self.direction) % len(self.players)]
 
-    def next_turn(self):
-        """
-        Switches the table turn.
-        """
-        self.turn: Player = self.opponent
+    def set_next_turn(self):
+        self.turn_index = (self.turn_index + self.direction) % len(self.players)
 
-    @staticmethod
-    def reverse_queue():
-        return NotImplemented
+    def reverse_queue(self):
+        self.direction *= -1
 
+    def skip_next_player(self):
+        self.turn_index = (self.turn_index + self.direction) % len(self.players)
+        self.set_next_turn()
 
 class Game(Table):
     def __init__(self, players: list[Player], rules: dict[str, Any]):

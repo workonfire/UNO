@@ -1,6 +1,6 @@
 import unittest
 
-import uno.exceptions
+from uno.exceptions import *
 from uno.game import *
 from uno.exceptions import *
 
@@ -42,7 +42,7 @@ class UNOTest(unittest.TestCase):
         self.assertEqual(Card(CardType.CARD_WILDCARD, None).__repr__(), "WILDCARD")
         self.assertEqual(Card(CardType.CARD_PLUS_4, CardColor.GREEN).__repr__(), "+4")
         self.assertEqual(Card(None, CardColor.GREEN).__repr__(), "* GREEN")
-        with self.assertRaises(uno.exceptions.InvalidCardException):
+        with self.assertRaises(InvalidCardException):
             self.assertEqual(Card(None, None).__repr__(), "* GREEN")
 
     def test_card_from_str(self):
@@ -81,9 +81,10 @@ class UNOTest(unittest.TestCase):
         self.assertEqual(len(deck.draw(100)), 100)
 
     def test_player(self):
-        player: Player = Player()
-        self.assertEqual(player.name, '')
+        player: Player = Player("Computer")
+        self.assertEqual(player.name, 'Computer')
         self.assertEqual(player.hand, [])
+        self.assertEqual(player.is_computer, True)
 
     def test_player_deal(self):
         player: Player = Player("Test")
@@ -123,90 +124,35 @@ class UNOTest(unittest.TestCase):
 
     def test_queue_order_starting_with_human(self):
         table: Table = Table(
-            [Player("Human"), Player("Computer")],
+            [Player("Human1"), Player("Computer1"), Player("Human2"), Player("Human3"), Player("Computer2")],
             {'card_stacking': False,
              'initial_cards': 10}
         )
-        human_turn_stack: list[str] = [table.turn.name]
         for i in range(10):
             # print(f"Current turn: {table.turn.name}. Next turn...")
-            table.next_turn()
-            human_turn_stack.append(table.turn.name)
+            table.set_next_turn()
 
-        self.assertEqual(human_turn_stack, [
-            "Human",
-            "Computer",
-            "Human",
-            "Computer",
-            "Human",
-            "Computer",
-            "Human",
-            "Computer",
-            "Human",
-            "Computer",
-            "Human"
-        ])
+        table.reverse_queue()
+        table.set_next_turn()
+        table.set_next_turn()
+
+        self.assertEqual(table.turn.name, "Human3")
 
     def test_queue_order_starting_with_computer(self):
         table: Table = Table(
-            [Player("Computer"), Player("Human")],
+            [Player("Computer1"), Player("Computer2"), Player("Human1"), Player("Human2"), Player("Human3")],
             {'card_stacking': False,
              'initial_cards': 10}
         )
-        computer_turn_stack: list[str] = [table.turn.name]
         for i in range(10):
             # print(f"Current turn: {table.turn.name}. Next turn...")
-            table.next_turn()
-            computer_turn_stack.append(table.turn.name)
+            table.set_next_turn()
 
-        self.assertEqual(computer_turn_stack, [
-            "Computer",
-            "Human",
-            "Computer",
-            "Human",
-            "Computer",
-            "Human",
-            "Computer",
-            "Human",
-            "Computer",
-            "Human",
-            "Computer"
-        ])
+        table.reverse_queue()
+        table.set_next_turn()
+        table.set_next_turn()
 
-    def test_queue_order_with_many_players(self):
-        table: Table = Table(
-            [
-                Player("Wzium1"),
-                Player("Human"),
-                Player("Computer"),
-                Player("Wzium69")
-            ],
-            {'card_stacking': False,
-             'initial_cards': 10}
-        )
-        turn_stack: list[str] = [table.turn.name]
-        for i in range(10):
-            # print(f"Current turn: {table.turn.name}. Next turn...")
-            if i == 5:
-                self.assertEqual(table.reverse_queue(), NotImplemented)
-            table.next_turn()
-            turn_stack.append(table.turn.name)
-        # TODO: Test the queue system
-        """
-        self.assertEqual(turn_stack, [
-            "Wzium1",
-            "Human",
-            "Computer",
-            "Wzium69",
-            "Wzium1",
-            "Wzium69",
-            "Computer",
-            "Human",
-            "Wzium1",
-            "Wzium69",
-            "Computer"
-        ])
-        """
+        self.assertEqual(table.turn.name, "Human2")
 
 
 if __name__ == '__main__':
