@@ -17,6 +17,8 @@ pkg: archive
 clean:
 	rm -f $(ARCHIVE)
 	rm -rf pkg
+	rm -rf src/$(PREFIX)
+	rm -rf src/$(ARCHIVE)
 	rm -f *.pkg.tar.zst
 	@echo "🧹 Cleaned up build artifacts"
 
