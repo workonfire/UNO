@@ -24,7 +24,7 @@ def main():
 
     logging.basicConfig(stream=sys.stdout,
                         level=logging.DEBUG if debug else logging.INFO,
-                        format='[bright_black]%(levelname)s: %(message)s[/bright_black]')
+                        format='%(levelname)s: %(message)s')
 
     players: list[Player] = []
     while True:
