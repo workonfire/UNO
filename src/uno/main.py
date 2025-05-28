@@ -1,18 +1,33 @@
-import sys
-import time
-
+from pathlib import Path
+from platformdirs import user_config_path
 from uno.game import *
 import argparse
 import traceback
+import shutil
+import sys
+import time
+import yaml
 
-__VERSION__: str = 'ALPHA-2025-05-28'
+__NAME__ = 'UNO'
+__AUTHOR__ = 'workonfire'
+__VERSION__: str = '1.0.0a1-2025-05-28'
+
+CONFIG_DIR = user_config_path(__NAME__, __AUTHOR__)
+
+def copy_if_missing(src: Path, dst: Path):
+    if not dst.exists():
+        if src.is_dir():
+            shutil.copytree(src, dst)
+        else:
+            shutil.copy2(src, dst)
+        logging.debug(f"Copying {src} to {dst}")
 
 def main():
     console.print("[red]88   88[/red][green] 88b 88[/green][blue]  dP\"Yb  ")
     console.print("[red]88   88[/red][green] 88Yb88[/green][blue] dP   Yb ")
     console.print("[red]Y8   8P[/red][green] 88 Y88[/green][blue] Yb   dP ")
     console.print("[red]`YbodP'[/red][green] 88  Y8[/green][blue]  YbodP  ")
-    console.print(f"\n[bright_red]U[bright_green]N[bright_blue]O[/bright_blue][bright_white] | version {__VERSION__}")
+    console.print(f"\n[bright_red]U[bright_green]N[bright_blue]O[/bright_blue][bright_white] | v{__VERSION__}")
     print("---")
     argparser: argparse.ArgumentParser = argparse.ArgumentParser()
     argparser.add_argument('-C', '--cheats', action='store_true')
@@ -24,17 +39,31 @@ def main():
 
     logging.basicConfig(stream=sys.stdout,
                         level=logging.DEBUG if debug else logging.INFO,
-                        format='[bright_black]%(levelname)s: %(message)s[/bright_black]')
+                        format='%(levelname)s: %(message)s')
+
+    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    copy_if_missing(Path('config.yml'), CONFIG_DIR / 'config.yml')
+    copy_if_missing(Path('lang'), CONFIG_DIR / 'lang')
+    logging.debug(f"Using config file: {CONFIG_DIR}/config.yml")
+
+    with open(CONFIG_DIR / "config.yml") as config_file:
+        config = yaml.safe_load(config_file)
+
+    lang = config['lang']
+
+    with open(CONFIG_DIR / 'lang' / f'{lang}.yml') as lang_file:
+        messages = yaml.safe_load(lang_file)
+
 
     players: list[Player] = []
     while True:
         try:
-            number_of_players = int(input("Please enter the number of players: "))
+            number_of_players = int(input(messages['input_player_numbers']))
             if number_of_players > 1:
                 break
-            print_error("The number can't be lower than 2.")
+            print_error(messages['number_cant_be_lower_than_two'])
         except ValueError:
-            print_error("Enter a valid number.")
+            print_error(messages['enter_valid_number'])
     print("Please enter the player names.")
     print("Hint: type \"computer\" to play with the computer.\n---")
     for i in range(1, number_of_players + 1):

@@ -13,7 +13,7 @@ from typing import Any, Generator, Optional
 console = Console(color_system='standard') # TODO: make this not a dependency
 
 def print_error(message):
-    console.print(f"f[bright_red]{message}[/bright_red]")
+    console.print(f"[bright_red]{message}[/bright_red]")
 
 
 class Card:

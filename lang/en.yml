@@ -1,0 +1,3 @@
+input_player_numbers: "Please enter the number of players: "
+number_cant_be_lower_than_two: "The number can't be lower than 2."
+enter_valid_number: "Enter a valid number."
