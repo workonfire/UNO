@@ -12,7 +12,7 @@ depends=('python' 'python-rich')
 makedepends=('python-build' 'python-installer' 'python-wheel' 'python-hatchling' 'git')
 provides=('uno')
 conflicts=('uno')
-source=("${pkgname}::git+https://github.com/workonfire/UNO.git")
+source=("${pkgname}")
 sha256sums=('SKIP')
 
 prepare() {
