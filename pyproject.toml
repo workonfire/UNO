@@ -1,0 +1,19 @@
+[project]
+name = "uno"
+version = "1.0.0a1"
+description = "CLI implementation of the UNO card game in Python"
+authors = [
+    { name = "workonfire", email = "kolucki62@gmail.com" }
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "rich>=13.0.0"
+]
+
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+uno = "uno.main:main"

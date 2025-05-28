@@ -1,8 +1,7 @@
 import unittest
 
-from uno.exceptions import *
-from uno.game import *
-from uno.exceptions import *
+from src.uno.game import *
+
 
 # TODO: Implement `rich`
 

@@ -1,4 +1,4 @@
-from uno.main import main
+from src.uno.main import main
 
 if __name__ == '__main__':
     try:

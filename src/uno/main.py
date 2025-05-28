@@ -34,7 +34,7 @@ def main():
     number_of_players = int(input("Please enter the number of players: ")) # TODO: Checking
     print("Please enter the player names.")
     print("Hint: type \"computer\" to play with the computer.\n")
-    for i in range(1, number_of_players + 1): # TODO: A proper queue system
+    for i in range(1, number_of_players + 1):
         while True:
             player_name: str = input(f"Player {i}: ").lower()
             if player_name in [player.name for player in players]:
