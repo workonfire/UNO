@@ -7,10 +7,6 @@ import traceback
 
 __VERSION__: str = 'ALPHA-2025-05-28'
 
-# TODO: Define a print_error() function
-# TODO: Check `[bright_white]`
-
-
 def main():
     console.print("[red]88   88[/red][green] 88b 88[/green][blue]  dP\"Yb  ")
     console.print("[red]88   88[/red][green] 88Yb88[/green][blue] dP   Yb ")
@@ -31,22 +27,32 @@ def main():
                         format='[bright_black]%(levelname)s: %(message)s[/bright_black]')
 
     players: list[Player] = []
-    number_of_players = int(input("Please enter the number of players: ")) # TODO: Checking
+    while True:
+        try:
+            number_of_players = int(input("Please enter the number of players: "))
+            if number_of_players > 1:
+                break
+            print_error("The number can't be lower than 2.")
+        except ValueError:
+            print_error("Enter a valid number.")
     print("Please enter the player names.")
-    print("Hint: type \"computer\" to play with the computer.\n")
+    print("Hint: type \"computer\" to play with the computer.\n---")
     for i in range(1, number_of_players + 1):
         while True:
-            player_name: str = input(f"Player {i}: ").lower()
+            player_name: str = input(f"Player #{i}: ").lower()
             if player_name in [player.name for player in players]:
-                print("That player already exists.")
+                print_error("That player already exists.")
             else:
                 break
         players.append(Player(player_name))
     while True:
-        initial_cards: int = int(input("Starting cards: "))
-        if initial_cards > 1:
-            break
-        console.print("[bright_red]The number can't be lower than 2.[/bright_red]")
+        try:
+            initial_cards: int = int(input("Starting cards: "))
+            if initial_cards > 1:
+                break
+            print_error("The number can't be lower than 2.")
+        except ValueError:
+            print_error("Enter a valid number.")
     card_stacking: bool = input("Similar card stacking (Y/n): ").lower() in ('y', '')
 
     rules: dict[str, Any] = {'initial_cards': initial_cards,
@@ -68,7 +74,7 @@ def main():
                     time.sleep(0.5)
                 console.print(f"-> Computer put {card}")
                 game.play(card, game.turn)
-                logging.debug(f"-  Opponent's cards: {game.next_turn.format_hand_contents()}")
+                logging.debug(f"-  {game.turn.name}'s cards: {game.next_turn.format_hand_contents()}")
                 print(f"-- Opponent's remaining cards: {len(game.next_turn.hand)}")
             else:
                 if not game.turn.is_computer or not game.next_turn.is_computer:
@@ -92,7 +98,7 @@ def main():
                         try:
                             exec(cheat_code)
                         except Exception:
-                            console.print("[bright_red]" + traceback.format_exc() + "[/bright_red]")
+                            print_error(traceback.format_exc())
                         break
                     except IndexError:
                         pass
@@ -101,7 +107,7 @@ def main():
                     try:
                         game.deal_card(game.turn)
                     except IndexError:
-                        console.print("[bright_red]Can't draw more cards.[/bright_red]")
+                        print_error("Can't draw more cards.") # Does it even make sense?
                 elif card_input == 'PASS': # TODO: Make it depend on game rules
                     print("You passed the turn.")
                     game.set_next_turn()
@@ -113,9 +119,9 @@ def main():
                     try:
                         game.play(card, game.turn)
                     except CardNotPlayableError:
-                        console.print(f"[bright_red]The card {card!r} is not playable.[/bright_red]")
+                        print_error(f"The card {card!r} is not playable.")
                     except CardNotInPossessionError:
-                        console.print(f"[bright_red]You do not have {card!r} in your hand.[/bright_red]")
+                        print_error(f"You do not have {card!r} in your hand.")
                     except AttributeError:
-                        console.print("[bright_red]Incorrect input. Please enter a card name, e.g. \"7 GREEN\"[/bright_red]")
+                        print_error("Incorrect input. Please enter a card name, for example: \"7 GREEN\"")
             break

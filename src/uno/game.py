@@ -10,7 +10,11 @@ from time import sleep
 
 from typing import Any, Generator, Optional
 
-console = Console(color_system='standard')
+console = Console(color_system='standard') # TODO: make this not a dependency
+
+def print_error(message):
+    console.print(f"f[bright_red]{message}[/bright_red]")
+
 
 class Card:
     def __init__(self, card_type: Optional[CardType], color: Optional[CardColor]):
@@ -156,7 +160,7 @@ class Table:
                         try:
                             new_color = CardColor[input("New card color: ").upper()]
                             break
-                        except KeyError: # TODO: remove dependency on the Console object
+                        except KeyError:
                             console.print(
                                 "[bright_red]Incorrect input. Please type a card color, e.g. \"GREEN\"[/bright_red]")
                 if card.card_type == CardType.CARD_PLUS_4:
@@ -177,7 +181,7 @@ class Table:
                             # TODO: +2 and/or +4 stacking
                             if not self.turn.is_computer:
                                 sleep(0.2)
-                            console.print(f"Stacking {playable_card}...")
+                            console.print(f"> Stacking {playable_card}...")
             if not stacking:
                 if card.card_type == CardType.CARD_SKIP:
                     self.skip_next_player()
