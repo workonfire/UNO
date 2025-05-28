@@ -4,7 +4,7 @@ A simple Python implementation of the UNO game.
 ### WARNING: WORK IN PROGRESS.
 It's best to look at the `#TODO` notes inside files.
 
-No screenshots for now, because the current interface is just temporary.
+![img.png](img.png)
 
 To-do features:
 [TODO.md](TODO.md)
@@ -33,7 +33,7 @@ if card.playable(other_card):
 - Generating a deck
 ```python
 deck = Deck(size=50)
-cards: List[Card] = deck.draw(15)
+cards: list[Card] = deck.draw(15)
 ```
 
 - Inspecting a player
@@ -47,9 +47,9 @@ if len(player.hand) == 0:
 
 - Working with the table
 ```python
-players: List[Player] = [Player('Wzium'), Player('Computer')]
+players: list[Player] = [Player('Wzium'), Player('Computer')]
 # Custom rules (W.I.P.)
-rules: Dict[str, Any] = {'initial_cards': 7,
+rules: dict[str, Any] = {'initial_cards': 7,
                          'cheats': False,
                          'card_stacking': True}
 
