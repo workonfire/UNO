@@ -75,7 +75,7 @@ def main():
                 console.print(f"-> Computer put {card}")
                 game.play(card, game.turn)
                 logging.debug(f"-  {game.turn.name}'s cards: {game.next_turn.format_hand_contents()}")
-                print(f"-- Opponent's remaining cards: {len(game.next_turn.hand)}")
+                print(f"-- {game.turn.name} remaining cards: {len(game.next_turn.hand)}")
             else:
                 if not game.turn.is_computer or not game.next_turn.is_computer:
                     time.sleep(0.25)
