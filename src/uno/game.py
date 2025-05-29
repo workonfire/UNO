@@ -186,8 +186,9 @@ class Table:
                 if card.card_type == CardType.CARD_SKIP:
                     self.skip_next_player()
                 elif card.card_type == CardType.CARD_REVERSE:
-                    self.reverse_queue()
-                    self.set_next_turn()
+                    if len(self.players) > 2:
+                        self.reverse_queue()
+                        self.set_next_turn()
                 else:
                     self.set_next_turn()
         else:

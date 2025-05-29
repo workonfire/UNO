@@ -1,9 +1,6 @@
 import unittest
 
-from src.uno.game import *
-
-
-# TODO: Implement `rich`
+from uno.game import *
 
 
 class UNOTest(unittest.TestCase):
@@ -124,7 +121,7 @@ class UNOTest(unittest.TestCase):
     def test_queue_order_starting_with_human(self):
         table: Table = Table(
             [Player("Human1"), Player("Computer1"), Player("Human2"), Player("Human3"), Player("Computer2")],
-            {'card_stacking': False,
+            {'card_stacking': True,
              'initial_cards': 10}
         )
         for i in range(10):
@@ -140,7 +137,7 @@ class UNOTest(unittest.TestCase):
     def test_queue_order_starting_with_computer(self):
         table: Table = Table(
             [Player("Computer1"), Player("Computer2"), Player("Human1"), Player("Human2"), Player("Human3")],
-            {'card_stacking': False,
+            {'card_stacking': True,
              'initial_cards': 10}
         )
         for i in range(10):
