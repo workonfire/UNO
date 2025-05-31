@@ -47,15 +47,15 @@ def main():
         players.append(Player(player_name))
     while True:
         try:
-            initial_cards: int = int(input("Starting cards: "))
-            if initial_cards > 1:
+            starting_cards: int = int(input("Starting cards: "))
+            if starting_cards > 1:
                 break
             print_error("The number can't be lower than 2.")
         except ValueError:
             print_error("Enter a valid number.")
     card_stacking: bool = input("Similar card stacking (Y/n): ").lower() in ('y', '')
 
-    rules: dict[str, Any] = {'initial_cards': initial_cards,
+    rules: dict[str, Any] = {'starting_cards': starting_cards,
                              'cheats': cheats,
                              'card_stacking': card_stacking}
     game: Game = Game(players, rules)
@@ -68,7 +68,7 @@ def main():
         console.print(f"\n- Turn: [bold][italic]{game.turn.name}[/bold][/italic]")
         while True:
             if game.turn.is_computer:
-                computer_turn: TurnWrapper = TurnWrapper(game)
+                computer_turn: Turn = Turn(game)
                 card: Card = computer_turn.get_result()
                 if not game.turn.is_computer or not game.next_turn.is_computer:
                     time.sleep(0.5)

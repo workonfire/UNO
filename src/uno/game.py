@@ -21,7 +21,7 @@ class Card:
         self.card_type: Optional[CardType] = card_type
         self.is_wild: bool = self.card_type in (CardType.CARD_WILDCARD, CardType.CARD_PLUS_4)
         self.color: Optional[CardColor] = None if self.is_wild else color
-        if self.card_type is None and self.color is None:
+        if not isinstance(self.card_type, CardType) and not isinstance(self.color, CardColor):
             raise InvalidCardException
 
     def __repr__(self) -> str:
@@ -39,7 +39,7 @@ class Card:
         if isinstance(other, Card):
             return self.card_type == other.card_type and self.color == other.color
         else:
-            return NotImplemented
+            return NotImplemented # TODO
 
     @staticmethod
     def from_str(value: str) -> Optional['Card']:
@@ -126,7 +126,7 @@ class Table:
         while self.stack[0].card_type in (CardType.CARD_PLUS_4, CardType.CARD_PLUS_2, CardType.CARD_WILDCARD):
             self.stack = [self.deck.draw()]
         for player in players:
-            player.hand = self.deck.draw(self.rules['initial_cards'])
+            player.hand = self.deck.draw(self.rules['starting_cards'])
 
     @property
     def last_played_card(self) -> Card:
@@ -136,22 +136,22 @@ class Table:
     def turn(self) -> Player:
         return self.players[self.turn_index]
 
-    def play(self, card: Card, player: Player, stacking: bool = False):
+    def play(self, card: Card, player: Player, stacking_active: bool = False):
         """
         Puts the selected card on top of the stack.
         :param card: card object.
         :param player: player object.
-        :param stacking: describes if the player is currently in the middle of card-stacking.
+        :param stacking_active: describes if the player is currently in the middle of card-stacking.
         """
         if card.playable(self.last_played_card):
             if card not in player.hand:
-                raise CardNotInPossessionError(f"The player {player} does not have {card} card in hand.")
+                raise CardNotInPossessionError(f"The player {player} does not have {card} card.")
             self.stack.insert(0, card)
             player.hand.remove(card)
 
             if card.is_wild:
                 if self.turn.is_computer:
-                    new_color: CardColor = TurnWrapper(self).most_reasonable_color
+                    new_color: CardColor = Turn(self).most_reasonable_color
                     console.print(
                         f"{self.turn.name} changed the color to [bright_{new_color.name.lower()}]{new_color}[bright_white]")
                 else:
@@ -174,15 +174,15 @@ class Table:
                     next_player = self.players[(self.turn_index + self.direction) % len(self.players)]
                     new_cards = self.deck.draw(2)
                     next_player.hand.extend(new_cards)
-                if self.rules.get('card_stacking') and not stacking:
-                    for playable_card in TurnWrapper(self).playable_cards:
+                if self.rules.get('card_stacking') and not stacking_active:
+                    for playable_card in Turn(self).playable_cards:
                         if not playable_card.is_wild and playable_card.card_type == self.last_played_card.card_type:
-                            self.play(playable_card, player, stacking=True)
+                            self.play(playable_card, player, stacking_active=True)
                             # TODO: +2 and/or +4 stacking
                             if not self.turn.is_computer:
                                 sleep(0.2)
                             console.print(f"> Stacking {playable_card}...")
-            if not stacking:
+            if not stacking_active:
                 if card.card_type == CardType.CARD_SKIP:
                     self.skip_next_player()
                 elif card.card_type == CardType.CARD_REVERSE:
@@ -254,7 +254,7 @@ class Game(Table):
         self.end()
 
 
-class TurnWrapper:
+class Turn:
     def __init__(self, table: Table):
         self.table: Table = table
         self.last_card: Card = self.table.last_played_card

@@ -40,6 +40,7 @@ class UNOTest(unittest.TestCase):
         self.assertEqual(Card(None, CardColor.GREEN).__repr__(), "* GREEN")
         with self.assertRaises(InvalidCardException):
             self.assertEqual(Card(None, None).__repr__(), "* GREEN")
+            self.assertEqual(Card('test', 'test').__repr__(), "* GREEN")
 
     def test_card_from_str(self):
         self.assertEqual(Card.from_str('6 BLUE'), Card(CardType.CARD_6, CardColor.BLUE))
@@ -96,7 +97,7 @@ class UNOTest(unittest.TestCase):
         # Creating a table
         players: list[Player] = [Player("Human"), Player("Computer")]
         rules: dict[str, Any] = {'card_stacking': False,
-                                 'initial_cards': 10}
+                                 'starting_cards': 10}
         table: Table = Table(players, rules)
         print(f"Current players: {table.players}")
         print(f"Deck contents: {table.deck.stack}")
@@ -122,7 +123,7 @@ class UNOTest(unittest.TestCase):
         table: Table = Table(
             [Player("Human1"), Player("Computer1"), Player("Human2"), Player("Human3"), Player("Computer2")],
             {'card_stacking': True,
-             'initial_cards': 10}
+             'starting_cards': 10}
         )
         for i in range(10):
             # print(f"Current turn: {table.turn.name}. Next turn...")
@@ -138,7 +139,7 @@ class UNOTest(unittest.TestCase):
         table: Table = Table(
             [Player("Computer1"), Player("Computer2"), Player("Human1"), Player("Human2"), Player("Human3")],
             {'card_stacking': True,
-             'initial_cards': 10}
+             'starting_cards': 10}
         )
         for i in range(10):
             # print(f"Current turn: {table.turn.name}. Next turn...")
