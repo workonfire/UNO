@@ -1,11 +1,18 @@
 import sys
 import time
-
-from uno.game import *
 import argparse
 import traceback
 
-__VERSION__: str = 'ALPHA-2025-05-28'
+from uno.game import *
+from rich.console import Console
+from time import sleep
+
+__VERSION__: str = 'ALPHA-2025-06-01'
+
+console = Console(color_system='standard')
+
+def print_error(message):
+    console.print(f"[bright_red]{message}[/bright_red]")
 
 def main():
     console.print("[red]88   88[/red][green] 88b 88[/green][blue]  dP\"Yb  ")
@@ -65,7 +72,16 @@ def main():
             game.win(game.get_winner())
             console.print(f"> [green]Winner: {game.winner.name}[/green]")
             break
-        console.print(f"\n- Turn: [bold][italic]{game.turn.name}[/bold][/italic]")
+        if not all(player.is_computer for player in players): # Automated game
+            print("\n- Turn: [", end='')
+            for player in game.players:
+                if player == game.turn:
+                    console.print(f' [bold][bright_white][underline]{player.name}[/bold][/bright_white][/underline]', end='')
+                else:
+                    console.print(f' {player.name}', end='')
+            print(' ]')
+        else:
+            console.print(f"\n- Turn: [bold][italic]{game.turn.name}[/bold][/italic]")
         while True:
             if game.turn.is_computer:
                 computer_turn: Turn = Turn(game)
@@ -73,7 +89,20 @@ def main():
                 if not game.turn.is_computer or not game.next_turn.is_computer:
                     time.sleep(0.5)
                 console.print(f"-> Computer put {card}")
-                game.play(card, game.turn)
+                event: GameEvent = game.play(card, game.turn)
+                match event.type:
+                    case GameEventType.COLOR_CHANGED:
+                        console.print(f"{event.payload['player'].name} changed the color to "
+                                      f"[bright_{event.payload['new_color'].name.lower()}]"
+                                      f"{event.payload['new_color']}[bright_white]")
+                        game.stack[0] = Card(None, event.payload['new_color'])
+                    case GameEventType.AWAIT_COLOR_INPUT:
+                        raise NotImplementedError
+                    case GameEventType.STACKING_ACTIVE:
+                        for card in event.payload['stacked_cards']:
+                            # if not game.turn.is_computer:
+                            #    sleep(0.2)
+                            console.print(f"> Stacking {card}...")
                 logging.debug(f"-  {game.turn.name}'s cards: {game.next_turn.format_hand_contents()}")
                 print(f"-- {game.turn.name} remaining cards: {len(game.next_turn.hand)}") # FIXME: Include all players somehow
             else:
@@ -117,7 +146,26 @@ def main():
                     else:
                         card = Card.from_str(card_input)
                     try:
-                        game.play(card, game.turn)
+                        event: GameEvent = game.play(card, game.turn)
+                        match event.type:
+                            case GameEventType.COLOR_CHANGED:
+                                console.print(f"{event.payload['player'].name} changed the color to "
+                                              f"[bright_{event.payload['new_color'].name.lower()}]"
+                                              f"{event.payload['new_color']}[bright_white]")
+                                game.stack[0] = Card(None, event.payload['new_color'])
+                            case GameEventType.AWAIT_COLOR_INPUT:
+                                while True:
+                                    try:
+                                        new_color = CardColor[input("New card color: ").upper()]
+                                        break
+                                    except KeyError:
+                                        console.print("[bright_red]Incorrect input. "
+                                                      "Please type a card color, for example \"GREEN\"[/bright_red]")
+                                game.stack[0] = Card(None, new_color)
+                            case GameEventType.STACKING_ACTIVE:
+                                for card in event.payload['stacked_cards']:
+                                    sleep(0.2)
+                                    console.print(f"> Stacking {card}...")
                     except CardNotPlayableError:
                         print_error(f"The card {card!r} is not playable.")
                     except CardNotInPossessionError:

@@ -10,6 +10,13 @@ class Type(Enum):
         return self.name
 
 
+class GameEventType(Type):
+    AWAIT_COLOR_INPUT = auto()
+    COLOR_CHANGED = auto()
+    STACKING_ACTIVE = auto()
+    NO_EVENT = auto()
+
+
 class CardColor(Type):
     BLUE = auto()
     RED = auto()

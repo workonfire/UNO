@@ -1,20 +1,19 @@
 import logging
 import random
 
-from rich.console import Console
-
 from uno.enums import *
 from uno.exceptions import *
 from shutil import get_terminal_size
-from time import sleep
 
 from typing import Any, Generator, Optional
 
-console = Console(color_system='standard') # TODO: make this not a dependency
+class GameEvent:
+    def __init__(self, type_: GameEventType, payload: dict[str, Any]):
+        self.type: GameEventType = type_
+        self.payload: dict[str, Any] = payload
 
-def print_error(message):
-    console.print(f"[bright_red]{message}[/bright_red]")
 
+# TODO: Refactor
 
 class Card:
     def __init__(self, card_type: Optional[CardType], color: Optional[CardColor]):
@@ -52,7 +51,7 @@ class Card:
             elif value.upper() == '+4':
                 card = Card(CardType.CARD_PLUS_4, None)
             else:
-                card = None
+                card = None # Raise exception?
         except KeyError:
             card = None
         return card
@@ -78,7 +77,7 @@ class Card:
         # card_to_display: str = ''.join(CardVisual.get_card_visual('>', self.card_type.value))
         if centered:
             card_to_display = card_to_display.center(get_terminal_size().columns)
-        console.print(f'[bright_{self.color.name.lower()}]' + card_to_display + '[bright_white]')
+        # console.print(f'[bright_{self.color.name.lower()}]' + card_to_display + '[bright_white]')
 
 
 class Deck:
@@ -136,13 +135,17 @@ class Table:
     def turn(self) -> Player:
         return self.players[self.turn_index]
 
-    def play(self, card: Card, player: Player, stacking_active: bool = False):
+    def play(self, card: Card, player: Player, stacking_active: bool = False) -> GameEvent:
         """
         Puts the selected card on top of the stack.
         :param card: card object.
         :param player: player object.
         :param stacking_active: describes if the player is currently in the middle of card-stacking.
+        :return: a GameEvent object, could be NO_EVENT, AWAIT_COLOR_INPUT, COLOR_CHANGED or STACKING_ACTIVE
         """
+
+        event: GameEvent = GameEvent(GameEventType.NO_EVENT, {})
+
         if card.playable(self.last_played_card):
             if card not in player.hand:
                 raise CardNotInPossessionError(f"The player {player} does not have {card} card.")
@@ -152,22 +155,13 @@ class Table:
             if card.is_wild:
                 if self.turn.is_computer:
                     new_color: CardColor = Turn(self).most_reasonable_color
-                    console.print(
-                        f"{self.turn.name} changed the color to [bright_{new_color.name.lower()}]{new_color}[bright_white]")
+                    event = GameEvent(GameEventType.COLOR_CHANGED, {'player': self.turn, 'new_color': new_color})
                 else:
-                    # TODO: Language file
-                    while True:
-                        try:
-                            new_color = CardColor[input("New card color: ").upper()]
-                            break
-                        except KeyError:
-                            console.print(
-                                "[bright_red]Incorrect input. Please type a card color, e.g. \"GREEN\"[/bright_red]")
+                    event = GameEvent(GameEventType.AWAIT_COLOR_INPUT, {'player': self.turn}) # Is the payload needed here?
                 if card.card_type == CardType.CARD_PLUS_4:
                     next_player: Player = self.players[(self.turn_index + self.direction) % len(self.players)]
                     new_cards: list[Card] = self.deck.draw(4)
                     next_player.hand.extend(new_cards)
-                self.stack[0] = Card(None, new_color)
                 logging.debug(f"Card on stack: {self.stack[0]}")
             else:
                 if card.card_type == CardType.CARD_PLUS_2:  # TODO: Queue +2 and +4 stacking
@@ -175,13 +169,13 @@ class Table:
                     new_cards = self.deck.draw(2)
                     next_player.hand.extend(new_cards)
                 if self.rules.get('card_stacking') and not stacking_active:
+                    stacked_cards: list[Card] = []
                     for playable_card in Turn(self).playable_cards:
                         if not playable_card.is_wild and playable_card.card_type == self.last_played_card.card_type:
                             self.play(playable_card, player, stacking_active=True)
+                            stacked_cards.append(playable_card)
                             # TODO: +2 and/or +4 stacking
-                            if not self.turn.is_computer:
-                                sleep(0.2)
-                            console.print(f"> Stacking {playable_card}...")
+                    event = GameEvent(GameEventType.STACKING_ACTIVE, {'stacked_cards': stacked_cards})
             if not stacking_active:
                 if card.card_type == CardType.CARD_SKIP:
                     self.skip_next_player()
@@ -193,6 +187,7 @@ class Table:
                     self.set_next_turn()
         else:
             raise CardNotPlayableError(f"The player {player} cannot play with {card}.")
+        return event
 
     def deal_card(self, player: Player, amount: int = 1):
         """
