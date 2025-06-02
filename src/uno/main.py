@@ -7,31 +7,44 @@ from uno.game import *
 from rich.console import Console
 from time import sleep
 
-__VERSION__: str = 'ALPHA-2025-06-01'
+__VERSION__: str = 'ALPHA-2025-06-02'
 
 console = Console(color_system='standard')
 
 def print_error(message):
     console.print(f"[bright_red]{message}[/bright_red]")
 
-def main():
+def print_version():
     console.print("[red]88   88[/red][green] 88b 88[/green][blue]  dP\"Yb  ")
     console.print("[red]88   88[/red][green] 88Yb88[/green][blue] dP   Yb ")
     console.print("[red]Y8   8P[/red][green] 88 Y88[/green][blue] Yb   dP ")
     console.print("[red]`YbodP'[/red][green] 88  Y8[/green][blue]  YbodP  ")
     console.print(f"\n[bright_red]U[bright_green]N[bright_blue]O[/bright_blue][bright_white] | version {__VERSION__}")
-    print("---")
+
+def main():
     argparser: argparse.ArgumentParser = argparse.ArgumentParser()
-    argparser.add_argument('-C', '--cheats', action='store_true')
-    argparser.add_argument('-D', '--debug', action='store_true')
+    argparser.add_argument('-C', '--cheats', action='store_true', help="enable cheat codes (see README)")
+    argparser.add_argument('-D', '--debug', action='store_true', help="enable debugging messages")
+    argparser.add_argument('-V', '--version', action='store_true', help="print the version and exit")
 
     arguments: argparse.Namespace = argparser.parse_args()
     cheats: bool = arguments.cheats
     debug: bool = arguments.debug
 
+    print_version()
+
+    if arguments.version:
+        raise SystemExit
+
+    print("---")
+
     logging.basicConfig(stream=sys.stdout,
                         level=logging.DEBUG if debug else logging.INFO,
                         format='%(levelname)s: %(message)s')
+
+    if cheats:
+        console.print("[yellow]WARNING: [/yellow][white]Cheat codes are enabled.[/white]")
+    logging.debug("Debug messages are enabled.")
 
     players: list[Player] = []
     while True:
@@ -92,19 +105,17 @@ def main():
                 event: GameEvent = game.play(card, game.turn)
                 match event.type:
                     case GameEventType.COLOR_CHANGED:
+                        game.stack[0] = Card(None, event.payload['new_color'])
                         console.print(f"{event.payload['player'].name} changed the color to "
                                       f"[bright_{event.payload['new_color'].name.lower()}]"
                                       f"{event.payload['new_color']}[bright_white]")
-                        game.stack[0] = Card(None, event.payload['new_color'])
                     case GameEventType.AWAIT_COLOR_INPUT:
                         raise NotImplementedError
                     case GameEventType.STACKING_ACTIVE:
                         for card in event.payload['stacked_cards']:
-                            # if not game.turn.is_computer:
-                            #    sleep(0.2)
                             console.print(f"> Stacking {card}...")
                 logging.debug(f"-  {game.turn.name}'s cards: {game.next_turn.format_hand_contents()}")
-                print(f"-- {game.turn.name} remaining cards: {len(game.next_turn.hand)}") # FIXME: Include all players somehow
+                print(f"-- Their remaining cards: {len(game.next_turn.hand)}") # TODO: Include all players somehow
             else:
                 if not game.turn.is_computer or not game.next_turn.is_computer:
                     time.sleep(0.25)
@@ -113,13 +124,13 @@ def main():
                     f"[bold][underline]{game.last_played_card}[/bold][/underline] "
                     f"[bright_cyan]<- [/bright_cyan]]\n"
                 )
-                # TODO: Create card visuals
-                # game.last_played_card.display(centered=True)
                 if not game.turn.is_computer or not game.next_turn.is_computer:
                     time.sleep(0.25)
                 console.print(f"-- Your cards: {game.turn.format_hand_contents()}\n")
-                # game.last_played_card.display()
-                card_input: str = console.input("Card ([bright_blue]Enter[/bright_blue] to draw) >[bright_white] ")
+                try:
+                    card_input: str = console.input("Card ([bright_blue]Enter[/bright_blue] to draw) >[bright_white] ")
+                except KeyboardInterrupt:
+                    raise SystemExit
                 if game.rules['cheats']:
                     try:
                         cheat_code: str = card_input.split('#')[1]
@@ -149,10 +160,10 @@ def main():
                         event: GameEvent = game.play(card, game.turn)
                         match event.type:
                             case GameEventType.COLOR_CHANGED:
+                                game.stack[0] = Card(None, event.payload['new_color'])
                                 console.print(f"{event.payload['player'].name} changed the color to "
                                               f"[bright_{event.payload['new_color'].name.lower()}]"
                                               f"{event.payload['new_color']}[bright_white]")
-                                game.stack[0] = Card(None, event.payload['new_color'])
                             case GameEventType.AWAIT_COLOR_INPUT:
                                 while True:
                                     try:

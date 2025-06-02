@@ -3,7 +3,6 @@ import random
 
 from uno.enums import *
 from uno.exceptions import *
-from shutil import get_terminal_size
 
 from typing import Any, Generator, Optional
 
@@ -19,6 +18,7 @@ class Card:
     def __init__(self, card_type: Optional[CardType], color: Optional[CardColor]):
         self.card_type: Optional[CardType] = card_type
         self.is_wild: bool = self.card_type in (CardType.CARD_WILDCARD, CardType.CARD_PLUS_4)
+        self.is_special: bool = self.is_wild or self.card_type in (CardType.CARD_PLUS_2, CardType.CARD_REVERSE, CardType.CARD_SKIP)
         self.color: Optional[CardColor] = None if self.is_wild else color
         if not isinstance(self.card_type, CardType) and not isinstance(self.color, CardColor):
             raise InvalidCardException
@@ -62,33 +62,17 @@ class Card:
         :param comparator: card object
         :return: true, if they're similar
         """
-        if self.is_wild:
-            return True
-        else:
-            return self.card_type == comparator.card_type or self.color == comparator.color
-
-    def display(self, centered: bool = False):
-        """
-        Creates a visual representation of the card.
-        :param centered: whether to center the card on the display, or not
-        """
-        card_to_display: str = CardVisual(self).art
-        # TODO: Card visuals
-        # card_to_display: str = ''.join(CardVisual.get_card_visual('>', self.card_type.value))
-        if centered:
-            card_to_display = card_to_display.center(get_terminal_size().columns)
-        # console.print(f'[bright_{self.color.name.lower()}]' + card_to_display + '[bright_white]')
+        return self.is_wild or self.card_type == comparator.card_type or self.color == comparator.color
 
 
 class Deck:
-    def draw(self, number: int = 1) -> list[Card] | Card:
+    def draw(self, number: int = 1) -> list[Card]:
         """
         Draws a specified amount of cards.
         :param number: a number of cards that you want to draw. Default is 1.
         :return: a list of cards, if the amount is greater than 1.
         """
-        # TODO: Just return a list and expect a list in a parent function
-        return self.stack if number == 1 else [self.stack for _ in range(number)]
+        return [self.stack for _ in range(number)]
 
     @staticmethod
     def _stack() -> Generator[Card, None, None]:
@@ -119,11 +103,9 @@ class Table:
         self.rules: dict[str, Any] = rules
         self.players: list[Player] = players
         self.deck: Deck = Deck()
-        self.stack: list[Card] = [self.deck.draw()]
+        self.stack: list[Card] = self.deck.draw()
         self.turn_index: int = 0
         self.direction: int = 1
-        while self.stack[0].card_type in (CardType.CARD_PLUS_4, CardType.CARD_PLUS_2, CardType.CARD_WILDCARD):
-            self.stack = [self.deck.draw()]
         for player in players:
             player.hand = self.deck.draw(self.rules['starting_cards'])
 
@@ -143,7 +125,6 @@ class Table:
         :param stacking_active: describes if the player is currently in the middle of card-stacking.
         :return: a GameEvent object, could be NO_EVENT, AWAIT_COLOR_INPUT, COLOR_CHANGED or STACKING_ACTIVE
         """
-
         event: GameEvent = GameEvent(GameEventType.NO_EVENT, {})
 
         if card.playable(self.last_played_card):
@@ -194,10 +175,7 @@ class Table:
         Gives the player a card from the deck.
         """
         cards = self.deck.draw(amount)
-        if isinstance(cards, list):
-            player.hand.extend(cards)
-        else:
-            player.hand.append(cards)
+        player.hand.extend(cards)
 
     @property
     def next_turn(self) -> Player:
@@ -218,8 +196,8 @@ class Game(Table):
         super().__init__(players, rules)
         self.active: bool = True
         self.winner: Player | None = None
-        while self.last_played_card.is_wild:
-            self.stack.insert(0, self.deck.draw())
+        while self.last_played_card.is_special:
+            self.stack = self.deck.draw()
 
     def end(self):
         """
